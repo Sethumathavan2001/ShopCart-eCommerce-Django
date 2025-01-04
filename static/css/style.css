@@ -1,0 +1,15 @@
+.card-image-top{
+ height: 50%;
+ width: 100px;
+}
+.orginal-price{
+color: red;
+font-weight: bold;
+}
+.selling-price{
+background-color: green;
+color: white;
+font-weight: bold;
+border-radius: 5px;
+padding: 2px;
+}

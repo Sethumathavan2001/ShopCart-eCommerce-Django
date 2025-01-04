@@ -1,0 +1,32 @@
+{% extends 'layouts/layout.html' %}
+{% block title %}
+Cart | Page
+{% endblock title %}
+{% block content %}
+<div class="container my-5">
+    <h1>{{request.user}} Favorite List</h1>
+    <hr>
+
+</div>
+<div class="container">
+    <table class="table table-bordered">
+        <thead>
+            <th>Image</th>
+            <th>Product Name</th>
+            <th>Price</th>
+            <th>Remove</th>
+        </thead>
+        <tbody>
+            {% for item in fav_list %}
+            <tr>
+            <td><img src="{{item.product_image.url}}" alt=""></td>
+            <td>{{item.name}}</td>
+            <td class="price-for-one-product">{{item.selling_price | stringformat:'d'}}</td>
+            <td><a href="{% url 'removefav' item.id %}" class="btn btn-danger" >Remove</a></td>
+        </tr>
+            {% endfor %}
+            
+        </tbody>
+    </table>
+</div>
+{% endblock content %}

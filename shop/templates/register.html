@@ -1,0 +1,30 @@
+{% extends 'layouts/layout.html' %}
+{% block title %}
+Register | Page
+{% endblock title %}
+{% block content %}
+<div class="container my-5">
+    <h1>Register Page</h1>
+    <hr>
+
+</div>
+<div class="container">
+    <div class="col-8 col-md-3">
+    <form action="" method="post">
+        {% csrf_token %}
+        <label for=""><b>Username</b></label><br>
+        {{form.username}} <br>
+        <label for=""><b>Email</b></label><br>
+        {{form.email}} <br>
+        <label for=""><b>Password</b></label><br>
+        {{form.password1}} <br>
+        <label for=""><b>Confirm Password</b></label><br>
+        {{form.password2}} <br><br>
+        <button type="submit">Submit</button>
+    </form>
+</div>
+    <div class="col-8 col-md-3">
+        {{form.username.errors}}
+    </div>
+</div>
+{% endblock content %}

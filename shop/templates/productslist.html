@@ -1,0 +1,44 @@
+
+{% extends 'layouts/layout.html' %}
+{% block title %}
+Collections | Page
+{% endblock title %}
+{% block content %}
+<div class="container my-5">
+    <h1>Product List</h1>
+</div>
+<section>   
+    <div class="bg-light py-4 my-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h4 class="mb-3">Products</h4>
+                    <hr style="border-color: #b8bfc2;">
+                </div>
+                {% for item in products %}
+                <div class="col-md-4 col-lg-3">
+                    <div class="card-body">
+                        <a href="{% url 'productdetail' item.id %}">
+                        <img src="{{item.product_image.url}}" alt="No Image">
+                        <h5 class="card-title text-primary">{{item.name}}</h5>
+                    </a>
+                        <br>
+                        <div class="card-text">
+                            <span class="float-start orginal-price">
+                                <s>Rs. {{item.orginal_price}}</s>
+                            </span>
+                            <span class="float-end selling-price">
+                                Rs. {{item.selling_price}}
+                            </span>
+                        </div>
+                        <br>
+                        <a href="{% url 'productdetail' item.id %}" class="btn btn-primary btn-sm" style="margin-bottom: 50px;">View Details</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock content %}

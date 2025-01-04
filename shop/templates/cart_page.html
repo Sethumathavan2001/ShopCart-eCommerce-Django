@@ -1,0 +1,64 @@
+{% extends 'layouts/layout.html' %}
+{% block title %}
+Cart | Page
+{% endblock title %}
+{% block content %}
+<div class="container my-5">
+    <h1>{{request.user}} Cart List</h1>
+    <hr>
+
+</div>
+<div class="container">
+    <table class="table table-bordered">
+        <thead>
+            <th>Image</th>
+            <th>Product Name</th>
+            <th>Quantity</th>
+            <th>Price</th>
+            <th>Total Price</th>
+            <th>Remove</th>
+        </thead>
+        <tbody>
+            {% for item in cart_list %}
+            <tr>
+            <td><img src="{{item.product_image.url}}" alt=""></td>
+            <td>{{item.name}}</td>
+            <td class="qnt">{{item.quantity}}</td>
+            <td class="price-for-one-product">{{item.selling_price | stringformat:'d'}}</td>
+            <td class="price">{{item.selling_price}}</td>
+            <td><a href="{% url 'removecart' item.id %}" class="btn btn-danger" >Remove</a></td>
+        </tr>
+            {% endfor %}
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>Total:</td>
+                <td id="tot-amt"></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<script>
+    one_product = document.getElementsByClassName('price-for-one-product');
+    qty = document.getElementsByClassName('qnt');
+    prices= document.getElementsByClassName('price');
+    console.log(prices)
+    for(let i=0; i<one_product.length;i++)
+    {
+        console.log(parseInt(one_product[i].textContent,10))
+        console.log(parseInt(qty[i].textContent,10))
+        prices[i].innerHTML = parseInt(one_product[i].textContent,10)*parseInt(qty[i].textContent,10)
+        console.log(prices[i])
+    }
+    var tot_price=0;
+    for(let i=0; i<prices.length;i++)
+    {
+        tot_price=tot_price+parseInt(prices[i].textContent);
+    }
+    document.getElementById('tot-amt').innerHTML = "Rs."+tot_price;
+    //console.log(tot_price);
+    //console.log(document.getElementById('tot-amt'));
+
+</script>
+{% endblock content %}

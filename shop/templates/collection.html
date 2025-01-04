@@ -1,0 +1,30 @@
+
+{% extends 'layouts/layout.html' %}
+{% block title %}
+Collections | Page
+{% endblock title %}
+{% block content %}
+<section>   
+    <div class="bg-light py-4 my-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h4 class="mb-3">All collections</h4>
+                    <hr style="border-color: #b8bfc2;">
+                </div>
+                {% for item in category %}
+                <div class="col-md-4 col-lg-3">
+                    <img src="{{item.image.url}}" alt="">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">{{item.name}}</h5>
+                        <br>
+                        <a href="{% url 'collectionview' item.id %}" class="btn btn-primary btn-sm">View Details</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock content %}

@@ -1,10 +1,14 @@
-from django.shortcuts import render,redirect
-from .models import Catagory,Products,Cartlist,Favlist
+from django.shortcuts import render,redirect,get_object_or_404
+from .models import Catagory,Products,Cartlist,Favlist,UserProfile
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
 from django.http import JsonResponse
 from .forms import NewUserForm
 import json
+from django.contrib.auth.decorators import login_required
+from decimal import Decimal
+
+
 def home(request):
     trending_products = Products.objects.filter(trending=1)
     return render(request,'home.html',{'trend':trending_products})
@@ -133,3 +137,35 @@ def addtofav(request):
             return JsonResponse({'status':'Please Login'},status=200)
     else:
         return JsonResponse({'status':'Invalid Access'},status=200) 
+
+def ewallet(request):
+    if request.user.is_authenticated:
+        profile = UserProfile.objects.get(user = request.user)
+        inr = profile.ewallet_amount
+        # print(cart_list)
+        return render(request,'ewallet.html',{'inr':inr})
+
+    else:
+        return redirect('/')
+
+@login_required
+def add_ewallet_amount(request):
+    if request.method == 'POST':
+        # Get the amount from the request data
+        data = json.loads(request.body)
+        amount = data['amount']
+
+        print(amount)
+        if amount:
+            amount = Decimal(amount)
+            # Get or create the user profile
+            user_profile = get_object_or_404(UserProfile, user=request.user)
+            
+            # Update the ewallet amount
+            user_profile.ewallet_amount += amount
+            user_profile.save()
+            
+            return JsonResponse({"success": True, "new_balance": user_profile.ewallet_amount})
+        else:
+            return JsonResponse({"success": False, "message": "Amount is required"})
+    return JsonResponse({"success": False, "message": "Invalid request"})

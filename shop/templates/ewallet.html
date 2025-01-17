@@ -1,0 +1,63 @@
+{% extends 'layouts/layout.html' %}
+{% block title %}
+Ewallet | Page
+{% endblock title %}
+{% block content %}
+<div class="container my-5">
+    <h1>{{request.user}} Wallet Amount in INR: {{inr}}</h1>
+    <hr>
+
+</div>
+<div class="container">
+    <input type="number" name="amount" id="amount-input">
+    <button id="add-amount-btn">Add Amount</button>
+</div>
+
+<script>
+document.getElementById('add-amount-btn').addEventListener('click', function() {
+    var amount = document.getElementById('amount-input').value;
+
+    if (amount && !isNaN(amount)) {
+        // Send an AJAX POST request to add the amount
+        fetch("{% url 'add_ewallet_amount' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')  // Include CSRF token for security
+            },
+            body: JSON.stringify({ 'amount': amount })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Amount added! New balance: " + data.new_balance);
+                window.location.reload();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    } else {
+        alert("Please enter a valid amount.");
+    }
+});
+
+// Function to get CSRF token for AJAX request
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+
+
+{% endblock content %}

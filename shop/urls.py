@@ -14,5 +14,7 @@ urlpatterns = [
     path('cart', views.cart_page,name='cart'),
     path('favorite', views.favorite,name='favorite'),
     path('addtofav', views.addtofav,name='addtofav'),
+    path('ewallet', views.ewallet,name='ewallet'),
+    path('add-ewallet-amount/', views.add_ewallet_amount, name='add_ewallet_amount'),
 
 ]

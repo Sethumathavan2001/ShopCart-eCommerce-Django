@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect,get_object_or_404
-from .models import Catagory,Products,Cartlist,Favlist,UserProfile
+from .models import Catagory,Products,Cartlist,Favlist,UserProfile,WalletTransaction
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
 from django.http import JsonResponse
@@ -7,6 +7,7 @@ from .forms import NewUserForm
 import json
 from django.contrib.auth.decorators import login_required
 from decimal import Decimal
+from time import time
 
 
 def home(request):
@@ -142,8 +143,11 @@ def ewallet(request):
     if request.user.is_authenticated:
         profile = UserProfile.objects.get(user = request.user)
         inr = profile.ewallet_amount
+        wallet_history = [{"date":time(),'type':'credit','amount':100,'balance':inr},
+                          {"date":time(),'type':'debit','amount':200,'balance':inr}]
+        wallet_history = WalletTransaction.objects.filter(user = request.user).order_by('-date')
         # print(cart_list)
-        return render(request,'ewallet.html',{'inr':inr})
+        return render(request,'ewallet.html',{'inr':inr,'wallet_history' : wallet_history})
 
     else:
         return redirect('/')
@@ -160,9 +164,31 @@ def add_ewallet_amount(request):
             amount = Decimal(amount)
             # Get or create the user profile
             user_profile = get_object_or_404(UserProfile, user=request.user)
-            
+            WalletTransaction.objects.create(user=request.user,type="credit",amount=amount,balance=user_profile.ewallet_amount + amount)
             # Update the ewallet amount
             user_profile.ewallet_amount += amount
+            user_profile.save()
+            
+            return JsonResponse({"success": True, "new_balance": user_profile.ewallet_amount})
+        else:
+            return JsonResponse({"success": False, "message": "Amount is required"})
+    return JsonResponse({"success": False, "message": "Invalid request"})
+
+@login_required
+def withdraw_ewallet_amount(request):
+    if request.method == 'POST':
+        # Get the amount from the request data
+        data = json.loads(request.body)
+        amount = data['withdraw-amount']
+
+        print(amount)
+        if amount:
+            amount = Decimal(amount)
+            # Get or create the user profile
+            user_profile = get_object_or_404(UserProfile, user=request.user)
+            WalletTransaction.objects.create(user=request.user,type="debit",amount=amount,balance=user_profile.ewallet_amount - amount)
+            # Update the ewallet amount
+            user_profile.ewallet_amount -= amount
             user_profile.save()
             
             return JsonResponse({"success": True, "new_balance": user_profile.ewallet_amount})

@@ -12,7 +12,26 @@ Ewallet | Page
     <input type="number" name="amount" id="amount-input">
     <button id="add-amount-btn">Add Amount</button>
 </div>
-
+<div class="container">
+    <input type="number" name="amount" id="withdraw-amount-input">
+    <button id="withdraw-amount-btn">Withdraw Amount</button>
+</div>
+<table class="table table-bordered">
+    <thead>
+        <th>Data & Time</th>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Balance</th>
+    </thead>
+    <tbody>
+    {% for i in wallet_history %}
+    <tr><td>{{i.date}}</td>
+    <td>{{i.type}}</td>
+    <td>{{i.amount}}</td>
+    <td>{{i.balance}}</td></tr>
+    {% endfor %}
+</tbody>
+</table>
 <script>
 document.getElementById('add-amount-btn').addEventListener('click', function() {
     var amount = document.getElementById('amount-input').value;
@@ -42,6 +61,33 @@ document.getElementById('add-amount-btn').addEventListener('click', function() {
     }
 });
 
+document.getElementById('withdraw-amount-btn').addEventListener('click', function() {
+    var amount = document.getElementById('withdraw-amount-input').value;
+
+    if (amount && !isNaN(amount)) {
+        // Send an AJAX POST request to add the amount
+        fetch("{% url 'withdraw_ewallet_amount' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')  // Include CSRF token for security
+            },
+            body: JSON.stringify({ 'withdraw-amount': amount })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Amount Withdraw! New balance: " + data.new_balance);
+                window.location.reload();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    } else {
+        alert("Please enter a valid amount.");
+    }
+});
 // Function to get CSRF token for AJAX request
 function getCookie(name) {
     var cookieValue = null;

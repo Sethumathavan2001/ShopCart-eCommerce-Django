@@ -67,3 +67,17 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - eWallet: {self.ewallet_amount}"
+    
+class WalletTransaction(models.Model):
+    TRANSACTION_TYPES = [
+        ('credit', 'Credit'),
+        ('debit', 'Debit'),
+    ]
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    date = models.DateTimeField(auto_now_add=True)  # Timestamp of the transaction
+    type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)  # Transaction type (credit or debit)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)  # Amount of money for the transaction
+    balance = models.DecimalField(max_digits=10, decimal_places=2)  # Current balance after transaction
+
+    def __str__(self):
+        return f'{self.type.capitalize()} of {self.amount} on {self.date}'

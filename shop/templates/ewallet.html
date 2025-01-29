@@ -22,13 +22,16 @@ Ewallet | Page
         <th>Type</th>
         <th>Amount</th>
         <th>Balance</th>
+        <th>Comment</th>
     </thead>
     <tbody>
     {% for i in wallet_history %}
     <tr><td>{{i.date}}</td>
     <td>{{i.type}}</td>
     <td>{{i.amount}}</td>
-    <td>{{i.balance}}</td></tr>
+    <td>{{i.balance}}</td>
+    <td>{{i.comment}}</td>
+    </tr>
     {% endfor %}
 </tbody>
 </table>

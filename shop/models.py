@@ -78,6 +78,6 @@ class WalletTransaction(models.Model):
     type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)  # Transaction type (credit or debit)
     amount = models.DecimalField(max_digits=10, decimal_places=2)  # Amount of money for the transaction
     balance = models.DecimalField(max_digits=10, decimal_places=2)  # Current balance after transaction
-
+    comment = models.CharField(max_length=100,default="NA")
     def __str__(self):
         return f'{self.type.capitalize()} of {self.amount} on {self.date}'

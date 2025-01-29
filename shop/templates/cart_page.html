@@ -16,6 +16,7 @@ Cart | Page
             <th>Quantity</th>
             <th>Price</th>
             <th>Total Price</th>
+            <th>Buy</th>
             <th>Remove</th>
         </thead>
         <tbody>
@@ -26,6 +27,7 @@ Cart | Page
             <td class="qnt">{{item.quantity}}</td>
             <td class="price-for-one-product">{{item.selling_price | stringformat:'d'}}</td>
             <td class="price">{{item.selling_price}}</td>
+            <td><a href="{% url 'buyproduct' item.product.id %}" class="btn btn-warning" >Buy</a></td>
             <td><a href="{% url 'removecart' item.id %}" class="btn btn-danger" >Remove</a></td>
         </tr>
             {% endfor %}

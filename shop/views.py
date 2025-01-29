@@ -164,7 +164,8 @@ def add_ewallet_amount(request):
             amount = Decimal(amount)
             # Get or create the user profile
             user_profile = get_object_or_404(UserProfile, user=request.user)
-            WalletTransaction.objects.create(user=request.user,type="credit",amount=amount,balance=user_profile.ewallet_amount + amount)
+            WalletTransaction.objects.create(user=request.user,type="credit",amount=amount,balance=user_profile.ewallet_amount + amount,
+                                             comment="Amount Creadited")
             # Update the ewallet amount
             user_profile.ewallet_amount += amount
             user_profile.save()
@@ -186,7 +187,8 @@ def withdraw_ewallet_amount(request):
             amount = Decimal(amount)
             # Get or create the user profile
             user_profile = get_object_or_404(UserProfile, user=request.user)
-            WalletTransaction.objects.create(user=request.user,type="debit",amount=amount,balance=user_profile.ewallet_amount - amount)
+            WalletTransaction.objects.create(user=request.user,type="debit",amount=amount,balance=user_profile.ewallet_amount - amount,
+                                             comment="Amount Debited")
             # Update the ewallet amount
             user_profile.ewallet_amount -= amount
             user_profile.save()
@@ -195,3 +197,7 @@ def withdraw_ewallet_amount(request):
         else:
             return JsonResponse({"success": False, "message": "Amount is required"})
     return JsonResponse({"success": False, "message": "Invalid request"})
+
+def buyproduct(request,productid):
+    product = Products.objects.get(id=productid)
+    return JsonResponse({"success": True, "message": f"Buy the product {productid}","Name":product.name})

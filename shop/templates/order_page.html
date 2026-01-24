@@ -1,0 +1,41 @@
+{% extends 'layouts/layout.html' %}
+{% block title %}
+Ewallet | Page
+{% endblock title %}
+{% block content %}
+<div class="container my-5">
+    <h1>{{request.user}} Wallet Amount in INR: {{inr}}</h1>
+    <hr>
+
+</div>
+<div class="container">
+    <input type="number" name="amount" id="amount-input">
+    <button id="add-amount-btn">Add Amount</button>
+</div>
+<div class="container">
+    <input type="number" name="amount" id="withdraw-amount-input">
+    <button id="withdraw-amount-btn">Withdraw Amount</button>
+</div>
+<table class="table table-bordered">
+    <thead>
+        <th>Data & Time</th>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Balance</th>
+        <th>Comment</th>
+    </thead>
+    <tbody>
+    {% for i in wallet_history %}
+    <tr><td>{{i.date}}</td>
+    <td>{{i.type}}</td>
+    <td>{{i.amount}}</td>
+    <td>{{i.balance}}</td>
+    <td>{{i.comment}}</td>
+    </tr>
+    {% endfor %}
+</tbody>
+</table>
+
+
+
+{% endblock content %}

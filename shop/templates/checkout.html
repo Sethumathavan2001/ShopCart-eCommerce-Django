@@ -1,0 +1,160 @@
+{% extends 'layouts/layout.html' %}
+{% load shop_tags %}
+{% block title %}Checkout{% endblock title %}
+{% block content %}
+<div class="container">
+  <div class="page-head d-flex flex-wrap justify-content-between align-items-end gap-2">
+    <h1>Checkout</h1>
+    <div class="steps d-none d-md-flex">
+      <span class="s done"><span class="n"><i class="bi bi-check"></i></span> Cart</span><span class="line"></span>
+      <span class="s current"><span class="n">2</span> Checkout</span><span class="line"></span>
+      <span class="s"><span class="n">3</span> Done</span>
+    </div>
+  </div>
+
+  <form method="post" class="row g-4 pb-4" id="checkoutForm">
+    {% csrf_token %}
+    <div class="col-lg-8">
+      <!-- Address -->
+      <div class="card-soft mb-3">
+        <div class="card-header"><span class="badge text-bg-primary rounded-pill me-2">1</span> Delivery address</div>
+        <div class="card-body">
+          <div class="row g-3">
+            {% for a in addresses %}
+            <div class="col-md-6 position-relative">
+              <input class="option-input" type="radio" name="address_id" id="addr{{ a.id }}" value="{{ a.id }}" {% if not address_form.errors %}{% if a.is_default or forloop.first %}checked{% endif %}{% endif %}>
+              <label class="option-card" for="addr{{ a.id }}">
+                <div class="d-flex justify-content-between">
+                  <strong>{{ a.full_name }}</strong>
+                  {% if a.is_default %}<span class="badge text-bg-light">Default</span>{% endif %}
+                </div>
+                <div class="small text-muted-2 mt-1">
+                  {{ a.line1 }}{% if a.line2 %}, {{ a.line2 }}{% endif %}<br>
+                  {{ a.city }}, {{ a.state }} - {{ a.pincode }}<br>
+                  <i class="bi bi-telephone"></i> {{ a.phone }}
+                </div>
+              </label>
+            </div>
+            {% endfor %}
+            <div class="col-md-6 position-relative">
+              <input class="option-input" type="radio" name="address_id" id="addrNew" value="new" {% if not addresses or address_form.errors %}checked{% endif %}>
+              <label class="option-card d-flex align-items-center justify-content-center text-primary fw-semibold" for="addrNew" style="min-height:110px">
+                <i class="bi bi-plus-circle me-2"></i> Add a new address
+              </label>
+            </div>
+          </div>
+
+          <div id="newAddress" class="mt-3 {% if addresses %}d-none{% endif %}">
+            <div class="row g-3">
+              <div class="col-md-6"><label class="form-label small fw-semibold">Full name</label>{{ address_form.full_name }}{{ address_form.full_name.errors }}</div>
+              <div class="col-md-6"><label class="form-label small fw-semibold">Phone</label>{{ address_form.phone }}{{ address_form.phone.errors }}</div>
+              <div class="col-12"><label class="form-label small fw-semibold">Address line 1</label>{{ address_form.line1 }}{{ address_form.line1.errors }}</div>
+              <div class="col-12"><label class="form-label small fw-semibold">Address line 2 <span class="text-muted">(optional)</span></label>{{ address_form.line2 }}</div>
+              <div class="col-md-4"><label class="form-label small fw-semibold">City</label>{{ address_form.city }}{{ address_form.city.errors }}</div>
+              <div class="col-md-4"><label class="form-label small fw-semibold">State</label>{{ address_form.state }}{{ address_form.state.errors }}</div>
+              <div class="col-md-4"><label class="form-label small fw-semibold">Pincode</label>{{ address_form.pincode }}{{ address_form.pincode.errors }}</div>
+              <div class="col-md-6"><label class="form-label small fw-semibold">Country</label>{{ address_form.country }}</div>
+              <div class="col-md-6 d-flex align-items-end"><div class="form-check">{{ address_form.is_default }} <label class="form-check-label" for="{{ address_form.is_default.id_for_label }}">Make this my default address</label></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment -->
+      <div class="card-soft mb-3">
+        <div class="card-header"><span class="badge text-bg-primary rounded-pill me-2">2</span> Payment method</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-4 position-relative">
+              <input class="option-input" type="radio" name="payment_method" id="payCod" value="cod" checked>
+              <label class="option-card" for="payCod">
+                <i class="bi bi-cash-coin fs-3 text-success"></i>
+                <div class="fw-bold mt-1">Cash on Delivery</div>
+                <small class="text-muted-2">Pay when your order arrives</small>
+              </label>
+            </div>
+            <div class="col-md-4 position-relative">
+              <input class="option-input" type="radio" name="payment_method" id="payWallet" value="wallet" {% if wallet_balance < total %}disabled{% endif %}>
+              <label class="option-card" for="payWallet">
+                <i class="bi bi-wallet2 fs-3 text-primary"></i>
+                <div class="fw-bold mt-1">ShopCart eWallet</div>
+                <small class="{% if wallet_balance < total %}text-danger{% else %}text-muted-2{% endif %}">Balance: {{ wallet_balance|inr }}</small>
+                {% if wallet_balance < total %}<div><a href="{% url 'ewallet' %}" class="small">Add money</a></div>{% endif %}
+              </label>
+            </div>
+            <div class="col-md-4 position-relative">
+              <input class="option-input" type="radio" name="payment_method" id="payOnline" value="online" {% if not online_payment_enabled %}disabled{% endif %}>
+              <label class="option-card" for="payOnline">
+                <i class="bi bi-credit-card fs-3 text-accent" style="color:var(--sc-accent)"></i>
+                <div class="fw-bold mt-1">Card / UPI / Netbanking</div>
+                <small class="text-muted-2">{% if online_payment_enabled %}Pay securely online{% else %}Coming soon{% endif %}</small>
+              </label>
+            </div>
+          </div>
+          <div class="mt-3">
+            <label class="form-label small fw-semibold" for="note">Delivery instructions <span class="text-muted">(optional)</span></label>
+            <textarea class="form-control" name="note" id="note" rows="2" maxlength="500" placeholder="e.g. Leave at the front desk"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Items -->
+      <div class="card-soft">
+        <div class="card-header d-flex justify-content-between"><span><span class="badge text-bg-primary rounded-pill me-2">3</span> Review items</span><a href="{% url 'cart' %}" class="small fw-normal">Edit cart</a></div>
+        <div class="card-body py-0">
+          {% for item in items %}
+          <div class="cart-item">
+            <div class="ci-img" style="width:64px;height:64px">{% if item.product.product_image %}<img src="{{ item.product.product_image.url }}" alt="">{% endif %}</div>
+            <div class="flex-grow-1">
+              <div class="ci-name small">{{ item.product.name }}</div>
+              <small class="text-muted-2">Qty {{ item.quantity }} × {{ item.product.selling_price|inr }}</small>
+            </div>
+            <div class="fw-bold text-nowrap">{{ item.line_total|inr }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="summary-card card-soft">
+        <div class="card-header">Order summary</div>
+        <div class="card-body">
+          <div class="summary-row"><span>Items ({{ item_count }})</span><span>{{ subtotal|inr }}</span></div>
+          {% if product_savings %}<div class="summary-row text-success small"><span>You saved on MRP</span><span>{{ product_savings|inr }}</span></div>{% endif %}
+          {% if coupon %}<div class="summary-row text-success"><span>Coupon ({{ coupon.code }})</span><span>- {{ coupon_discount|inr }}</span></div>{% endif %}
+          <div class="summary-row"><span>Delivery</span><span>{% if shipping %}{{ shipping|inr }}{% else %}<span class="text-success">FREE</span>{% endif %}</span></div>
+          <div class="summary-row total"><span>Order total</span><span>{{ total|inr }}</span></div>
+          <button type="submit" class="btn btn-primary btn-lg w-100 mt-3" id="placeOrder" {% if has_stock_issue %}disabled{% endif %}>
+            <i class="bi bi-lock-fill"></i> Place order
+          </button>
+          {% if has_stock_issue %}<div class="alert alert-warning small mt-3 mb-0">Some items are unavailable. <a href="{% url 'cart' %}">Update your cart</a>.</div>{% endif %}
+          <p class="small text-muted-2 mt-3 mb-0">By placing your order you agree to our <a href="{% url 'policy' 'terms' %}">terms</a> and <a href="{% url 'policy' 'returns' %}">return policy</a>.</p>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script>
+  (function () {
+    const box = document.getElementById('newAddress');
+    const fields = box.querySelectorAll('input:not([type=checkbox]), select');
+    const required = ['full_name', 'phone', 'line1', 'city', 'state', 'pincode', 'country'];
+    function sync() {
+      const isNew = document.getElementById('addrNew').checked;
+      box.classList.toggle('d-none', !isNew);
+      fields.forEach(f => { f.required = isNew && required.includes(f.name); });
+    }
+    document.querySelectorAll('input[name=address_id]').forEach(r => r.addEventListener('change', sync));
+    sync();
+    document.getElementById('checkoutForm').addEventListener('submit', function () {
+      const btn = document.getElementById('placeOrder');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Placing order…';
+    });
+  })();
+</script>
+{% endblock %}

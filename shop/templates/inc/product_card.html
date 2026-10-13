@@ -1,0 +1,46 @@
+{% load shop_tags %}
+<div class="product-card">
+  <a href="{% url 'productdetail' item.id %}" class="thumb" aria-label="{{ item.name }}">
+    {% if item.product_image %}
+      <img src="{{ item.product_image.url }}" alt="{{ item.name }}" loading="lazy" width="300" height="300">
+    {% else %}
+      <span class="d-grid h-100" style="place-items:center"><i class="bi bi-image text-muted fs-1"></i></span>
+    {% endif %}
+    <span class="badges">
+      {% if item.quantity <= 0 %}<span class="badge-oos">Sold out</span>
+      {% elif item.discount_percent >= 5 %}<span class="badge-off">-{{ item.discount_percent }}%</span>{% endif %}
+      {% if item.trending and item.quantity > 0 %}<span class="badge-hot"><i class="bi bi-fire"></i> Bestseller</span>{% endif %}
+    </span>
+  </a>
+  <button class="wish-btn {% if item.id in wishlist_ids %}active{% endif %}" data-wish="{{ item.id }}" aria-label="Add to wishlist" title="Wishlist">
+    <i class="bi bi-heart"></i>
+  </button>
+  <div class="body">
+    <span class="brand-line">{{ item.vendor }}</span>
+    <a href="{% url 'productdetail' item.id %}" class="name" title="{{ item.name }}">{{ item.name }}</a>
+    <div class="meta">
+      {% if item.rating_count %}
+        <span class="rating-pill">{{ item.avg_rating }} <i class="bi bi-star-fill"></i></span>
+        <span>({{ item.rating_count }})</span>
+      {% elif item.quantity > 0 and item.quantity <= 5 %}
+        <span class="low-stock-note"><i class="bi bi-hourglass-split"></i> Only {{ item.quantity }} left</span>
+      {% else %}
+        <span>{{ item.category.name }}</span>
+      {% endif %}
+    </div>
+    <div class="price-row">
+      <span class="price">{{ item.selling_price|inr }}</span>
+      {% if item.discount_percent %}
+        <span class="mrp">{{ item.orginal_price|inr }}</span>
+        <span class="off">{{ item.discount_percent }}% off</span>
+      {% endif %}
+    </div>
+    <div class="actions">
+      {% if item.quantity > 0 %}
+        <button class="btn btn-outline-primary btn-sm" data-add-cart="{{ item.id }}"><i class="bi bi-bag-plus"></i> Add to cart</button>
+      {% else %}
+        <button class="btn btn-white btn-sm text-muted" disabled>Out of stock</button>
+      {% endif %}
+    </div>
+  </div>
+</div>

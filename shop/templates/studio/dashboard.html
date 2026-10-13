@@ -1,0 +1,79 @@
+{% extends 'studio/base.html' %}
+{% load shop_tags %}
+{% block title %}Studio Dashboard{% endblock %}
+{% block studio %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+  <div>
+    <h1 class="h3 fw-bold mb-1">Good to see you, {{ request.user.first_name|default:request.user.username }}</h1>
+    <p class="text-muted-2 mb-0">Here's what's happening in your store today.</p>
+  </div>
+  <a href="{% url 'studio_product_add' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add product</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3"><a href="{% url 'studio_products' %}?visibility=live" class="stat"><div class="lbl">Live products <i class="bi bi-box-seam"></i></div><div class="val">{{ stats.live }}</div><small class="text-muted-2">of {{ stats.products }} total</small></a></div>
+  <div class="col-6 col-xl-3"><a href="{% url 'studio_products' %}?stock=low" class="stat"><div class="lbl">Low stock <i class="bi bi-exclamation-triangle text-warning"></i></div><div class="val">{{ stats.low_stock }}</div><small class="text-muted-2">5 units or fewer</small></a></div>
+  <div class="col-6 col-xl-3"><a href="{% url 'studio_products' %}?stock=out" class="stat"><div class="lbl">Out of stock <i class="bi bi-x-octagon text-danger"></i></div><div class="val">{{ stats.out_of_stock }}</div><small class="text-muted-2">Needs restocking</small></a></div>
+  <div class="col-6 col-xl-3"><div class="stat"><div class="lbl">Revenue · 7 days <i class="bi bi-graph-up-arrow text-success"></i></div><div class="val">{{ stats.revenue_week|inr }}</div><small class="text-muted-2">{{ stats.orders_today }} order{{ stats.orders_today|pluralize }} today · {{ stats.pending }} to ship</small></div></div>
+</div>
+
+<div class="row g-3">
+  <div class="col-xl-7">
+    <div class="card-soft h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Needs attention</span>
+        <a href="{% url 'studio_products' %}?stock=low" class="small fw-normal">View all</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table studio-table">
+          <thead><tr><th>Product</th><th>Category</th><th class="text-end">Stock</th><th></th></tr></thead>
+          <tbody>
+            {% for p in low_stock_items %}
+            <tr>
+              <td><div class="d-flex align-items-center gap-2">
+                {% if p.product_image %}<img src="{{ p.product_image.url }}" class="studio-thumb" alt="" style="width:40px;height:40px">{% endif %}
+                <a href="{% url 'studio_product_edit' p.id %}" class="pname">{{ p.name }}</a></div></td>
+              <td class="text-muted-2">{{ p.category.name }}</td>
+              <td class="text-end">{% if p.quantity <= 0 %}<span class="badge text-bg-danger">Out</span>{% else %}<span class="badge text-bg-warning">{{ p.quantity }}</span>{% endif %}</td>
+              <td class="text-end"><a href="{% url 'studio_product_edit' p.id %}" class="btn btn-white btn-sm">Restock</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center text-muted-2 py-4"><i class="bi bi-check-circle text-success"></i> All products are well stocked.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-5">
+    <div class="card-soft mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Recent orders</span>
+        <a href="{% url 'admin:shop_order_changelist' %}" class="small fw-normal">Manage</a>
+      </div>
+      <div class="card-body py-2">
+        {% for o in recent_orders %}
+          <a href="{% url 'admin:shop_order_change' o.id %}" class="d-flex justify-content-between align-items-center py-2 border-bottom text-ink">
+            <div class="min-w-0"><div class="fw-semibold small">#{{ o.order_number }}</div><small class="text-muted-2">{{ o.user.username }} · {{ o.created_at|timesince }} ago</small></div>
+            <div class="text-end"><div class="small fw-semibold">{{ o.total|inr }}</div><span class="status-badge status-{{ o.status }}">{{ o.get_status_display }}</span></div>
+          </a>
+        {% empty %}
+          <p class="text-muted-2 small py-3 mb-0 text-center">No orders yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="card-soft">
+      <div class="card-header d-flex justify-content-between align-items-center"><span>Categories</span><a href="{% url 'studio_category_add' %}" class="small fw-normal">Add category</a></div>
+      <div class="card-body py-2">
+        {% for c in categories %}
+          <a href="{% url 'studio_products' %}?category={{ c.id }}" class="d-flex align-items-center gap-2 py-2 text-ink">
+            <span class="cat-icon" style="--c: {{ c.color }};width:32px;height:32px;font-size:.95rem"><i class="bi {{ c.icon }}"></i></span>
+            <span class="small fw-semibold flex-grow-1">{{ c.name }}</span>
+            <span class="small text-muted-2">{{ c.n }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

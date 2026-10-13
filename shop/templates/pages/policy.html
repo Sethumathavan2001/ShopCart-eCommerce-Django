@@ -1,0 +1,39 @@
+{% extends 'layouts/layout.html' %}
+{% block title %}{{ title }}{% endblock title %}
+{% block content %}
+<div class="container" style="max-width:860px">
+  <div class="page-head">
+    <nav aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li><li class="breadcrumb-item active">{{ title }}</li></ol></nav>
+    <h1>{{ title }}</h1>
+  </div>
+  <div class="card-soft mb-4"><div class="card-body p-4 lh-lg">
+  {% if slug == 'terms' %}
+    <p>By using ShopCart you agree to these terms. Please read them carefully.</p>
+    <h5 class="fw-bold mt-4">Accounts</h5>
+    <p>You are responsible for keeping your login details secure and for all activity on your account.</p>
+    <h5 class="fw-bold mt-4">Orders & pricing</h5>
+    <p>All orders are subject to availability. Prices are shown in Indian Rupees and include applicable taxes. We may cancel orders affected by pricing or stock errors and refund any amount paid.</p>
+    <h5 class="fw-bold mt-4">eWallet</h5>
+    <p>eWallet balances can be used for purchases on ShopCart and withdrawn to your bank account. Refunds for wallet-paid orders are credited back to the wallet.</p>
+  {% elif slug == 'privacy' %}
+    <p>We respect your privacy. This policy explains what we collect and why.</p>
+    <h5 class="fw-bold mt-4">What we collect</h5>
+    <p>Account details (name, email, phone), delivery addresses, order history and wallet transactions.</p>
+    <h5 class="fw-bold mt-4">How we use it</h5>
+    <p>To process orders, deliver products, provide support and — only if you subscribe — send offers. We never sell your personal data.</p>
+  {% elif slug == 'shipping' %}
+    <ul>
+      <li>Free delivery on orders of Rs. 499 and above; a flat Rs. 40 fee applies below that.</li>
+      <li>Orders are usually dispatched within 24 hours and delivered in 2–5 business days.</li>
+      <li>Track your order at any time from <a href="{% url 'orders' %}">My Orders</a>.</li>
+    </ul>
+  {% elif slug == 'returns' %}
+    <ul>
+      <li>Most items can be returned within 7 days of delivery in their original condition.</li>
+      <li>Orders can be cancelled free of charge before they are shipped.</li>
+      <li>Refunds for eWallet payments are credited instantly; Cash on Delivery refunds are credited to your eWallet.</li>
+    </ul>
+  {% endif %}
+  </div></div>
+</div>
+{% endblock content %}

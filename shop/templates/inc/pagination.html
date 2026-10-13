@@ -1,0 +1,22 @@
+{% load shop_tags %}
+{% if page_obj.has_other_pages %}
+<nav aria-label="Pagination" class="mt-4">
+  <ul class="pagination justify-content-center flex-wrap">
+    {% if page_obj.has_previous %}
+      <li class="page-item"><a class="page-link" href="?{% url_replace page=page_obj.previous_page_number %}" aria-label="Previous"><i class="bi bi-chevron-left"></i></a></li>
+    {% endif %}
+    {% for n in page_obj.paginator.page_range %}
+      {% if n == page_obj.number %}
+        <li class="page-item active"><span class="page-link">{{ n }}</span></li>
+      {% elif n > page_obj.number|add:'-3' and n < page_obj.number|add:'3' or n == 1 or n == page_obj.paginator.num_pages %}
+        <li class="page-item"><a class="page-link" href="?{% url_replace page=n %}">{{ n }}</a></li>
+      {% elif n == page_obj.number|add:'-3' or n == page_obj.number|add:'3' %}
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+      {% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+      <li class="page-item"><a class="page-link" href="?{% url_replace page=page_obj.next_page_number %}" aria-label="Next"><i class="bi bi-chevron-right"></i></a></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}

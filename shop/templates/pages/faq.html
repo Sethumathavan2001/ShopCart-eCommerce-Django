@@ -1,0 +1,45 @@
+{% extends 'layouts/layout.html' %}
+{% block title %}Help & FAQs{% endblock title %}
+{% block content %}
+<div class="container" style="max-width:860px">
+  <div class="page-head text-center py-4">
+    <h1>Help & FAQs</h1>
+    <p class="text-muted-2 mb-0">Quick answers to the most common questions</p>
+  </div>
+  <div class="accordion mb-4" id="faq">
+    <div class="accordion-item">
+      <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#f1">How do I track my order?</button></h2>
+      <div id="f1" class="accordion-collapse collapse show" data-bs-parent="#faq"><div class="accordion-body">Go to <a href="{% url 'orders' %}">My Orders</a> and open any order to see its live status timeline — from confirmed to shipped to delivered.</div></div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f2">What payment methods do you accept?</button></h2>
+      <div id="f2" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body">You can pay with Cash on Delivery or your ShopCart eWallet. Card, UPI and netbanking payments are coming soon.</div></div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f3">How much is delivery?</button></h2>
+      <div id="f3" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body">Delivery is free on orders of Rs. 499 or more. Smaller orders have a flat Rs. 40 delivery fee.</div></div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f4">Can I cancel my order?</button></h2>
+      <div id="f4" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body">Yes — orders can be cancelled any time before they ship. Open the order and click <strong>Cancel order</strong>. eWallet payments are refunded instantly.</div></div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f5">How do coupons work?</button></h2>
+      <div id="f5" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body">Enter a coupon code on the cart page. Each coupon may have a minimum order value and expiry date. Try <strong>WELCOME10</strong> for 10% off your order.</div></div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f6">What is the ShopCart eWallet?</button></h2>
+      <div id="f6" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body">Your eWallet stores money for one-tap checkout. Add money any time, pay for orders instantly, and receive refunds directly in your wallet.</div></div>
+    </div>
+    <div class="accordion-item">
+      <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#f7">I forgot my password. What do I do?</button></h2>
+      <div id="f7" class="accordion-collapse collapse" data-bs-parent="#faq"><div class="accordion-body">Use the <a href="{% url 'password_reset' %}">Forgot password</a> link on the login page and we'll email you a reset link.</div></div>
+    </div>
+  </div>
+  <div class="card-soft text-center p-4 mb-4">
+    <h5 class="fw-bold">Still need help?</h5>
+    <p class="text-muted-2">Our support team is available around the clock.</p>
+    <a href="{% url 'contact' %}" class="btn btn-primary">Contact support</a>
+  </div>
+</div>
+{% endblock content %}

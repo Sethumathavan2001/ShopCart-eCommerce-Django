@@ -1,44 +1,142 @@
-
 {% extends 'layouts/layout.html' %}
-{% block title %}
-Collections | Page
-{% endblock title %}
+{% load shop_tags %}
+{% block title %}{% if q %}Search: {{ q }}{% elif current_category %}{{ current_category.name }}{% else %}All Products{% endif %}{% endblock title %}
 {% block content %}
-<div class="container my-5">
-    <h1>Product List</h1>
-</div>
-<section>   
-    <div class="bg-light py-4 my-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-12">
-                    <h4 class="mb-3">Products</h4>
-                    <hr style="border-color: #b8bfc2;">
-                </div>
-                {% for item in products %}
-                <div class="col-md-4 col-lg-3">
-                    <div class="card-body">
-                        <a href="{% url 'productdetail' item.id %}">
-                        <img src="{{item.product_image.url}}" alt="No Image">
-                        <h5 class="card-title text-primary">{{item.name}}</h5>
-                    </a>
-                        <br>
-                        <div class="card-text">
-                            <span class="float-start orginal-price">
-                                <s>Rs. {{item.orginal_price}}</s>
-                            </span>
-                            <span class="float-end selling-price">
-                                Rs. {{item.selling_price}}
-                            </span>
-                        </div>
-                        <br>
-                        <a href="{% url 'productdetail' item.id %}" class="btn btn-primary btn-sm" style="margin-bottom: 50px;">View Details</a>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-</section>
+<div class="container">
+  <div class="pt-4">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+        {% if current_category %}
+          <li class="breadcrumb-item"><a href="{% url 'collection' %}">Categories</a></li>
+          <li class="breadcrumb-item active" aria-current="page">{{ current_category.name }}</li>
+        {% else %}
+          <li class="breadcrumb-item active" aria-current="page">Shop</li>
+        {% endif %}
+      </ol>
+    </nav>
+    {% if current_category and not q %}
+      <div class="category-hero" style="--c: {{ current_category.color }}">
+        <span class="cat-icon"><i class="bi {{ current_category.icon }}"></i></span>
+        <div><h1>{{ current_category.name }}</h1><p>{{ current_category.description }}</p></div>
+      </div>
+    {% else %}
+      <div class="page-head pt-1">
+        <h1>{% if q %}Results for “{{ q }}”{% elif request.GET.on_sale %}Today's deals{% else %}All products{% endif %}</h1>
+      </div>
+    {% endif %}
+  </div>
 
+  <div class="row g-4">
+    <!-- Filters -->
+    <aside class="col-lg-3">
+      <button class="btn btn-white w-100 d-lg-none" data-bs-toggle="collapse" data-bs-target="#filters" aria-expanded="false">
+        <i class="bi bi-sliders"></i> Filters & categories
+      </button>
+      <div class="collapse d-lg-block mt-3 mt-lg-0" id="filters">
+        <form method="get" class="filter-card" id="filterForm">
+          {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+          <input type="hidden" name="sort" value="{{ sort }}">
+          {% if current_category %}<input type="hidden" name="category" value="{{ current_category.id }}">{% endif %}
+
+          <div class="filter-group">
+            <h6>Category</h6>
+            <a href="{% url 'shop' %}?{% url_replace category='' %}" class="cat-link {% if not current_category %}active{% endif %}">All categories</a>
+            {% for c in nav_categories %}
+              <a href="{% url 'shop' %}?{% url_replace category=c.id %}" class="cat-link {% if current_category.id == c.id %}active{% endif %}">
+                <span>{{ c.name }}</span><small>{{ c.product_count }}</small>
+              </a>
+            {% endfor %}
+          </div>
+
+          <div class="filter-group">
+            <h6>Price</h6>
+            <div class="d-flex gap-2 align-items-center">
+              <input type="number" class="form-control form-control-sm" name="min_price" value="{{ min_price }}" placeholder="Min" min="0" aria-label="Minimum price">
+              <span class="text-muted">–</span>
+              <input type="number" class="form-control form-control-sm" name="max_price" value="{{ max_price }}" placeholder="Max" min="0" aria-label="Maximum price">
+            </div>
+            <div class="d-flex flex-wrap gap-1 mt-2">
+              {% for lo, hi, label in "0,499,Under 499|500,999,500 – 999|1000,4999,1k – 5k|5000,,Over 5k"|split_ranges %}
+                <a href="?{% url_replace min_price=lo max_price=hi %}" class="chip text-decoration-none">{{ label }}</a>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <h6>Customer rating</h6>
+            {% for r in "432" %}
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="rating" value="{{ r }}" id="r{{ r }}" {% if request.GET.rating == r %}checked{% endif %}>
+              <label class="form-check-label" for="r{{ r }}">{{ r }} <i class="bi bi-star-fill text-warning small"></i> & above</label>
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="filter-group">
+            <h6>Availability</h6>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" name="in_stock" value="1" id="inStock" {% if request.GET.in_stock %}checked{% endif %}>
+              <label class="form-check-label" for="inStock">In stock only</label>
+            </div>
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" role="switch" name="on_sale" value="1" id="onSale" {% if request.GET.on_sale %}checked{% endif %}>
+              <label class="form-check-label" for="onSale">On sale</label>
+            </div>
+          </div>
+
+          <div class="d-grid gap-1 pt-3">
+            <button class="btn btn-dark" type="submit">Apply filters</button>
+            <a href="{% if current_category %}{% url 'collectionview' current_category.id %}{% else %}{% url 'shop' %}{% endif %}" class="btn btn-link btn-sm text-muted">Clear all</a>
+          </div>
+        </form>
+      </div>
+    </aside>
+
+    <!-- Results -->
+    <div class="col-lg-9">
+      <div class="toolbar">
+        <span class="text-muted-2 small">
+          {% if page_obj.paginator.count %}Showing <strong class="text-ink">{{ page_obj.start_index }}–{{ page_obj.end_index }}</strong> of <strong class="text-ink">{{ page_obj.paginator.count }}</strong> products{% else %}No products{% endif %}
+        </span>
+        <div class="d-flex align-items-center gap-2">
+          <label class="small text-muted-2 text-nowrap" for="sortSelect">Sort by</label>
+          <select class="form-select form-select-sm" id="sortSelect" onchange="window.location.search=this.value" style="min-width:180px">
+            {% for key, label in sort_options %}
+              <option value="{% url_replace sort=key %}" {% if key == sort %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      {% if q or min_price or max_price or request.GET.in_stock or request.GET.on_sale or request.GET.rating %}
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        {% if q %}<span class="chip">“{{ q }}” <a href="?{% url_replace q='' %}" aria-label="Remove"><i class="bi bi-x"></i></a></span>{% endif %}
+        {% if min_price %}<span class="chip">Min {{ min_price|inr }} <a href="?{% url_replace min_price='' %}" aria-label="Remove"><i class="bi bi-x"></i></a></span>{% endif %}
+        {% if max_price %}<span class="chip">Max {{ max_price|inr }} <a href="?{% url_replace max_price='' %}" aria-label="Remove"><i class="bi bi-x"></i></a></span>{% endif %}
+        {% if request.GET.rating %}<span class="chip">{{ request.GET.rating }}★ & above <a href="?{% url_replace rating='' %}" aria-label="Remove"><i class="bi bi-x"></i></a></span>{% endif %}
+        {% if request.GET.in_stock %}<span class="chip">In stock <a href="?{% url_replace in_stock='' %}" aria-label="Remove"><i class="bi bi-x"></i></a></span>{% endif %}
+        {% if request.GET.on_sale %}<span class="chip">On sale <a href="?{% url_replace on_sale='' %}" aria-label="Remove"><i class="bi bi-x"></i></a></span>{% endif %}
+      </div>
+      {% endif %}
+
+      <div class="row g-3 row-cols-2 row-cols-md-3">
+        {% for item in products %}
+          <div class="col">{% include 'inc/product_card.html' %}</div>
+        {% empty %}
+          <div class="col-12 w-100">
+            <div class="empty-state card-soft">
+              <div class="icon"><i class="bi bi-search"></i></div>
+              <h4>No products found</h4>
+              <p class="text-muted-2">Try a different search term or remove some filters.</p>
+              <a href="{% url 'shop' %}" class="btn btn-dark">Browse all products</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      {% include 'inc/pagination.html' %}
+    </div>
+  </div>
+</div>
 {% endblock content %}

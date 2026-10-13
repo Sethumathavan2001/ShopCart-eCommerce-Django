@@ -1,30 +1,47 @@
 {% extends 'layouts/layout.html' %}
-{% block title %}
-Register | Page
-{% endblock title %}
+{% load static %}
+{% block title %}Create Account{% endblock title %}
 {% block content %}
-<div class="container my-5">
-    <h1>Register Page</h1>
-    <hr>
-
-</div>
-<div class="container">
-    <div class="col-8 col-md-3">
-    <form action="" method="post">
-        {% csrf_token %}
-        <label for=""><b>Username</b></label><br>
-        {{form.username}} <br>
-        <label for=""><b>Email</b></label><br>
-        {{form.email}} <br>
-        <label for=""><b>Password</b></label><br>
-        {{form.password1}} <br>
-        <label for=""><b>Confirm Password</b></label><br>
-        {{form.password2}} <br><br>
-        <button type="submit">Submit</button>
-    </form>
-</div>
-    <div class="col-8 col-md-3">
-        {{form.username.errors}}
+<div class="container auth-wrap">
+  <div class="auth-card" style="max-width:540px">
+    <div class="text-center mb-4">
+      <img src="{% static 'images/logo-mark.svg' %}" alt="ShopCart" class="logo">
+      <h1>Create your account</h1>
+      <p class="text-muted-2 mb-0">Join ShopCart for faster checkout, order tracking and exclusive deals</p>
     </div>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      <div class="row g-3">
+        <div class="col-sm-6">
+          <label class="form-label small fw-semibold" for="{{ form.first_name.id_for_label }}">First name</label>
+          {{ form.first_name }}{{ form.first_name.errors }}
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label small fw-semibold" for="{{ form.last_name.id_for_label }}">Last name</label>
+          {{ form.last_name }}{{ form.last_name.errors }}
+        </div>
+        <div class="col-12">
+          <label class="form-label small fw-semibold" for="{{ form.username.id_for_label }}">Username</label>
+          {{ form.username }}{{ form.username.errors }}
+        </div>
+        <div class="col-12">
+          <label class="form-label small fw-semibold" for="{{ form.email.id_for_label }}">Email</label>
+          {{ form.email }}{{ form.email.errors }}
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label small fw-semibold" for="{{ form.password1.id_for_label }}">Password</label>
+          {{ form.password1 }}{{ form.password1.errors }}
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label small fw-semibold" for="{{ form.password2.id_for_label }}">Confirm password</label>
+          {{ form.password2 }}{{ form.password2.errors }}
+        </div>
+      </div>
+      <small class="text-muted-2 d-block mt-2">Use at least 8 characters. Avoid common or all-numeric passwords.</small>
+      <button type="submit" class="btn btn-primary btn-lg w-100 mt-4">Create account</button>
+    </form>
+    <p class="text-center small text-muted-2 mt-4 mb-0">Already have an account? <a href="{% url 'login' %}" class="fw-semibold">Log in</a></p>
+  </div>
 </div>
 {% endblock content %}

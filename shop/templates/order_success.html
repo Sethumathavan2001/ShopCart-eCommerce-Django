@@ -1,0 +1,26 @@
+{% extends 'layouts/layout.html' %}
+{% load shop_tags %}
+{% block title %}Order Placed{% endblock title %}
+{% block content %}
+<div class="container" style="max-width:720px">
+  <div class="card-soft my-5">
+    <div class="card-body p-4 p-md-5 text-center">
+      <div class="empty-state pb-3 pt-0">
+        <div class="icon" style="background:#dcfce7;color:var(--sc-success)"><i class="bi bi-check2-circle"></i></div>
+        <h4>Thank you! Your order is placed.</h4>
+        <p class="text-muted-2 mb-0">We've received your order and will notify you when it ships.</p>
+      </div>
+      <div class="row g-3 text-start bg-light rounded-3 p-3 mx-0 mb-4 small">
+        <div class="col-6 col-md-3"><div class="text-muted-2">Order no.</div><strong>{{ order.order_number }}</strong></div>
+        <div class="col-6 col-md-3"><div class="text-muted-2">Date</div><strong>{{ order.created_at|date:"d M Y" }}</strong></div>
+        <div class="col-6 col-md-3"><div class="text-muted-2">Total</div><strong>{{ order.total|inr }}</strong></div>
+        <div class="col-6 col-md-3"><div class="text-muted-2">Payment</div><strong>{{ order.get_payment_method_display }}</strong></div>
+      </div>
+      <div class="d-flex flex-wrap justify-content-center gap-2">
+        <a href="{% url 'order_detail' order.order_number %}" class="btn btn-primary"><i class="bi bi-box-seam"></i> Track order</a>
+        <a href="{% url 'shop' %}" class="btn btn-light-soft">Continue shopping</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

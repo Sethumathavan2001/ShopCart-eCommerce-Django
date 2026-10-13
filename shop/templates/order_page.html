@@ -1,41 +1,97 @@
 {% extends 'layouts/layout.html' %}
-{% block title %}
-Ewallet | Page
-{% endblock title %}
+{% load shop_tags %}
+{% block title %}Order {{ order.order_number }}{% endblock title %}
 {% block content %}
-<div class="container my-5">
-    <h1>{{request.user}} Wallet Amount in INR: {{inr}}</h1>
-    <hr>
-
-</div>
 <div class="container">
-    <input type="number" name="amount" id="amount-input">
-    <button id="add-amount-btn">Add Amount</button>
+  <div class="row g-4 py-4">
+    <div class="col-lg-3">{% include 'inc/account_nav.html' with active='orders' %}</div>
+    <div class="col-lg-9">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'orders' %}">My orders</a></li>
+          <li class="breadcrumb-item active" aria-current="page">{{ order.order_number }}</li>
+        </ol>
+      </nav>
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+        <div>
+          <h1 class="h3 fw-800 mb-1">Order #{{ order.order_number }}</h1>
+          <span class="text-muted-2 small">Placed on {{ order.created_at|date:"d M Y, h:i A" }}</span>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{% url 'order_invoice' order.order_number %}" target="_blank" class="btn btn-light-soft btn-sm"><i class="bi bi-receipt"></i> Invoice</a>
+          <form method="post" action="{% url 'reorder' order.order_number %}">{% csrf_token %}<button class="btn btn-light-soft btn-sm"><i class="bi bi-arrow-repeat"></i> Buy again</button></form>
+          {% if order.can_cancel %}
+          <form method="post" action="{% url 'cancel_order' order.order_number %}" data-confirm="Are you sure you want to cancel this order?">
+            {% csrf_token %}
+            <button class="btn btn-outline-danger btn-sm"><i class="bi bi-x-circle"></i> Cancel order</button>
+          </form>
+          {% endif %}
+          {% if order.payment_method == 'online' and order.payment_status == 'pending' and order.status != 'cancelled' %}
+            <a href="{% url 'payment_start' order.order_number %}" class="btn btn-primary btn-sm">Complete payment</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card-soft mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="fw-bold">Order status</span>
+            <span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span>
+          </div>
+          {% if order.status == 'cancelled' %}
+            <div class="alert alert-danger small mt-3 mb-0"><i class="bi bi-x-octagon"></i> This order was cancelled{% if order.payment_status == 'refunded' %} and {{ order.total|inr }} was refunded to your eWallet{% endif %}.</div>
+          {% else %}
+            <div class="timeline">
+              {% for label, done in order.tracking %}
+                <div class="t {% if done %}done{% endif %}"><div class="dot">{% if done %}<i class="bi bi-check-lg"></i>{% endif %}</div>{{ label }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-8">
+          <div class="card-soft h-100">
+            <div class="card-header">Items</div>
+            <div class="card-body py-0">
+              {% for item in order.items.all %}
+              <div class="cart-item">
+                <div class="ci-img" style="width:72px;height:72px">{% if item.product_image %}<img src="{{ item.product_image.url }}" alt="">{% endif %}</div>
+                <div class="flex-grow-1">
+                  {% if item.product_id %}<a href="{% url 'productdetail' item.product_id %}" class="ci-name small">{{ item.name }}</a>{% else %}<span class="ci-name small">{{ item.name }}</span>{% endif %}
+                  <small class="text-muted-2">Qty {{ item.quantity }} × {{ item.price|inr }}</small>
+                  {% if order.status == 'delivered' and item.product_id %}
+                    <div><a href="{% url 'productdetail' item.product_id %}#reviews" class="small"><i class="bi bi-star"></i> Rate & review</a></div>
+                  {% endif %}
+                </div>
+                <div class="fw-bold text-nowrap">{{ item.line_total|inr }}</div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card-soft mb-3">
+            <div class="card-header">Payment summary</div>
+            <div class="card-body small">
+              <div class="summary-row"><span>Subtotal</span><span>{{ order.subtotal|inr }}</span></div>
+              {% if order.discount %}<div class="summary-row text-success"><span>Discount{% if order.coupon %} ({{ order.coupon.code }}){% endif %}</span><span>- {{ order.discount|inr }}</span></div>{% endif %}
+              <div class="summary-row"><span>Delivery</span><span>{% if order.shipping_charge %}{{ order.shipping_charge|inr }}{% else %}FREE{% endif %}</span></div>
+              <div class="summary-row total"><span>Total</span><span>{{ order.total|inr }}</span></div>
+              <hr>
+              <div class="summary-row"><span class="text-muted-2">Method</span><span>{{ order.get_payment_method_display }}</span></div>
+              <div class="summary-row"><span class="text-muted-2">Status</span><span class="fw-semibold">{{ order.get_payment_status_display }}</span></div>
+            </div>
+          </div>
+          <div class="card-soft">
+            <div class="card-header">Delivery address</div>
+            <div class="card-body small" style="white-space:pre-line">{{ order.shipping_address }}</div>
+            {% if order.note %}<div class="card-body small border-top"><strong>Note:</strong> {{ order.note }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-<div class="container">
-    <input type="number" name="amount" id="withdraw-amount-input">
-    <button id="withdraw-amount-btn">Withdraw Amount</button>
-</div>
-<table class="table table-bordered">
-    <thead>
-        <th>Data & Time</th>
-        <th>Type</th>
-        <th>Amount</th>
-        <th>Balance</th>
-        <th>Comment</th>
-    </thead>
-    <tbody>
-    {% for i in wallet_history %}
-    <tr><td>{{i.date}}</td>
-    <td>{{i.type}}</td>
-    <td>{{i.amount}}</td>
-    <td>{{i.balance}}</td>
-    <td>{{i.comment}}</td>
-    </tr>
-    {% endfor %}
-</tbody>
-</table>
-
-
-
 {% endblock content %}

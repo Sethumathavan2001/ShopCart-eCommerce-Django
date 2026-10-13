@@ -1,0 +1,35 @@
+{% extends 'studio/base.html' %}
+{% block title %}Categories · Studio{% endblock %}
+{% block studio %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div><h1 class="h3 fw-bold mb-1">Categories</h1><p class="text-muted-2 mb-0">{{ categories|length }} categories</p></div>
+  <a href="{% url 'studio_category_add' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add category</a>
+</div>
+<div class="card-soft">
+  <div class="table-responsive">
+    <table class="table studio-table">
+      <thead><tr><th>Category</th><th>Products</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+      <tbody>
+        {% for c in categories %}
+        <tr>
+          <td><div class="d-flex align-items-center gap-3">
+            {% if c.image %}<img src="{{ c.image.url }}" alt="" class="studio-thumb" style="width:64px;object-fit:cover">{% endif %}
+            <span class="cat-icon" style="--c: {{ c.color }}"><i class="bi {{ c.icon }}"></i></span>
+            <div class="min-w-0"><a href="{% url 'studio_category_edit' c.id %}" class="pname">{{ c.name }}</a><small class="text-muted-2 d-block text-truncate" style="max-width:320px">{{ c.tagline|default:c.description }}</small></div>
+          </div></td>
+          <td><a href="{% url 'studio_products' %}?category={{ c.id }}">{{ c.n }}</a> <small class="text-muted-2">({{ c.live }} live)</small></td>
+          <td>{% if c.status %}<span class="dot-hidden">Hidden</span>{% else %}<span class="dot-live">Live</span>{% endif %}</td>
+          <td class="text-end text-nowrap">
+            <a href="{% url 'studio_product_add' %}?category={{ c.id }}" class="btn btn-white btn-sm" title="Add product to this category"><i class="bi bi-plus"></i> Product</a>
+            <a href="{% url 'studio_category_edit' c.id %}" class="btn btn-white btn-sm btn-icon" title="Edit"><i class="bi bi-pencil"></i></a>
+            <form method="post" action="{% url 'studio_category_delete' c.id %}" class="d-inline" data-confirm="Delete category “{{ c.name }}”?">
+              {% csrf_token %}<button class="btn btn-white btn-sm btn-icon text-danger" title="Delete" {% if c.n %}disabled{% endif %}><i class="bi bi-trash3"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

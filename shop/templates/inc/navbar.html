@@ -1,45 +1,151 @@
-<nav  style="color: white; background-color: cyan;" class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" >
-    <div class="container">
-      <a class="navbar-brand" href="{% url 'home' %}">ShopCart</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
+{% load static shop_tags %}
+<div class="topbar d-none d-md-block">
+  <div class="container d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-truck me-1"></i> Free delivery on orders over Rs. 499<span class="sep">|</span>New customers get 10% off with <strong class="text-white">WELCOME10</strong></span>
+    <span class="d-flex gap-3">
+      <a href="{% url 'orders' %}">Track order</a>
+      <a href="{% url 'faq' %}">Help centre</a>
+      <a href="{% url 'contact' %}">Contact us</a>
+    </span>
+  </div>
+</div>
+
+<header class="site-header">
+  <nav class="navbar">
+    <div class="container flex-wrap gap-2 gap-lg-4">
+      <button class="btn btn-icon btn-white d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu" aria-label="Open menu">
+        <i class="bi bi-list fs-5"></i>
       </button>
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Home</a>
-          </li>
-          {% if request.user.is_authenticated %}
-          <li class="nav-item">
-            <a class="nav-link" href="#">{{request.user}}</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'cart' %}">Cart</a>
-          </li>
-          
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'favorite' %}">Favourite</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'ewallet' %}">Ewallet</a>
-          </li>
-          {% else %}
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'login' %}">Login</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'register' %}">Register</a>
-          </li>
-          {% endif %}
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'collection' %}">Collection</a>
-          </li>
-          
-        
-        </ul>
+      <a class="brand" href="{% url 'home' %}">
+        <img src="{% static 'images/logo-mark.svg' %}" alt="" width="36" height="36">
+        <span>ShopCart<span class="dot">.</span></span>
+      </a>
+
+      <form class="search-wrap" action="{% url 'shop' %}" method="get" data-search role="search" autocomplete="off">
+        <select class="form-select" name="category" aria-label="Category">
+          <option value="">All categories</option>
+          {% for c in nav_categories %}<option value="{{ c.id }}" {% if current_category.id == c.id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+        </select>
+        <div class="search-input">
+          <i class="bi bi-search"></i>
+          <input class="form-control" type="search" name="q" value="{{ q|default:'' }}" placeholder="Search products, brands and more" aria-label="Search">
+          <button class="btn btn-primary btn-sm search-btn" type="submit" aria-label="Search"><i class="bi bi-arrow-right"></i></button>
+          <div class="search-suggest"></div>
+        </div>
+      </form>
+
+      <div class="d-flex align-items-center gap-1 ms-auto ms-lg-0">
+        {% if request.user.is_staff %}
+        <a class="nav-icon studio-link d-none d-md-inline-flex" href="{% url 'studio' %}" title="Seller Studio">
+          <i class="bi bi-shop-window"></i><span class="lbl">Studio</span>
+        </a>
+        {% endif %}
+        <a class="nav-icon" href="{% url 'favorite' %}" title="Wishlist">
+          <i class="bi bi-heart"></i><span class="lbl">Wishlist</span>
+          <span class="count" data-wish-count data-count="{{ wishlist_count }}">{% if wishlist_count %}{{ wishlist_count }}{% endif %}</span>
+        </a>
+        <a class="nav-icon" href="{% url 'cart' %}" title="Cart">
+          <i class="bi bi-bag"></i><span class="lbl">Cart</span>
+          <span class="count" data-cart-count data-count="{{ cart_count }}">{% if cart_count %}{{ cart_count }}{% endif %}</span>
+        </a>
+        {% if request.user.is_authenticated %}
+        <div class="dropdown">
+          <a class="nav-icon" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-person"></i><span class="lbl">{{ request.user.first_name|default:request.user.username|truncatechars:12 }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" style="min-width:230px">
+            <li class="px-3 py-2 d-flex align-items-center gap-2">
+              <span class="avatar">{{ request.user|initials }}</span>
+              <span class="min-w-0"><strong class="d-block text-truncate small">{{ request.user.get_full_name|default:request.user.username }}</strong>
+                <small class="text-muted-2 d-block text-truncate">{{ request.user.email|default:"Signed in" }}</small></span>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            {% if request.user.is_staff %}
+            <li><a class="dropdown-item" href="{% url 'studio' %}"><i class="bi bi-shop-window"></i> Seller Studio</a></li>
+            <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-speedometer2"></i> Admin panel</a></li>
+            <li><hr class="dropdown-divider"></li>
+            {% endif %}
+            <li><a class="dropdown-item" href="{% url 'account' %}"><i class="bi bi-person"></i> My account</a></li>
+            <li><a class="dropdown-item" href="{% url 'orders' %}"><i class="bi bi-box-seam"></i> Orders</a></li>
+            <li><a class="dropdown-item" href="{% url 'favorite' %}"><i class="bi bi-heart"></i> Wishlist</a></li>
+            <li><a class="dropdown-item" href="{% url 'ewallet' %}"><i class="bi bi-wallet2"></i> eWallet</a></li>
+            <li><a class="dropdown-item" href="{% url 'addresses' %}"><i class="bi bi-geo-alt"></i> Addresses</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right text-danger"></i> Sign out</a></li>
+          </ul>
+        </div>
+        {% else %}
+        <a class="btn btn-white btn-sm ms-1 d-none d-sm-inline-flex" href="{% url 'login' %}">Sign in</a>
+        <a class="btn btn-primary btn-sm" href="{% url 'register' %}">Create account</a>
+        {% endif %}
       </div>
     </div>
   </nav>
+
+  <div class="category-bar d-none d-lg-block">
+    <div class="container d-flex align-items-center">
+      <div class="dropdown">
+        <a class="nav-link all-cats ps-0" href="#" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-grid-3x3-gap-fill text-ink"></i> All categories <i class="bi bi-chevron-down small"></i></a>
+        <div class="dropdown-menu mega-menu">
+          <div class="row g-1">
+            {% for c in nav_categories %}
+            <div class="col-6">
+              <a class="mega-item" href="{% url 'collectionview' c.id %}">
+                <span class="cat-icon" style="--c: {{ c.color }}"><i class="bi {{ c.icon }}"></i></span>
+                <span><strong class="small">{{ c.name }}</strong><small>{{ c.product_count }} products</small></span>
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="border-top mt-2 pt-2 px-2 d-flex justify-content-between small">
+            <a href="{% url 'collection' %}" class="fw-semibold">Browse all categories</a>
+            <a href="{% url 'shop' %}?on_sale=1&sort=discount" class="text-danger fw-semibold"><i class="bi bi-lightning-charge-fill"></i> Today's deals</a>
+          </div>
+        </div>
+      </div>
+      <div class="scroll-x">
+        <ul class="nav flex-nowrap">
+          {% for c in nav_categories %}
+          <li class="nav-item"><a class="nav-link {% if current_category.id == c.id %}active{% endif %}" href="{% url 'collectionview' c.id %}">{{ c.name }}</a></li>
+          {% endfor %}
+          <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'shop' and not current_category and not q %}active{% endif %}" href="{% url 'shop' %}?sort=newest">New arrivals</a></li>
+          <li class="nav-item"><a class="nav-link text-danger fw-semibold" href="{% url 'shop' %}?on_sale=1&sort=discount"><i class="bi bi-lightning-charge-fill text-danger"></i> Deals</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile menu -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel" style="width:300px">
+  <div class="offcanvas-header border-bottom">
+    <a class="brand" href="{% url 'home' %}" id="mobileMenuLabel"><img src="{% static 'images/logo-mark.svg' %}" alt="" width="32" height="32"> ShopCart<span class="dot">.</span></a>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body p-2">
+    {% if request.user.is_staff %}
+      <a href="{% url 'studio' %}" class="btn btn-dark w-100 mb-3"><i class="bi bi-shop-window"></i> Seller Studio</a>
+    {% endif %}
+    <div class="small text-muted-2 fw-semibold text-uppercase px-3 pt-2 pb-1" style="letter-spacing:.06em;font-size:.7rem">Shop</div>
+    <div class="list-group list-group-flush">
+      <a href="{% url 'shop' %}" class="list-group-item list-group-item-action"><span class="cat-icon" style="width:34px;height:34px;font-size:1rem"><i class="bi bi-grid"></i></span> All products</a>
+      {% for c in nav_categories %}
+      <a href="{% url 'collectionview' c.id %}" class="list-group-item list-group-item-action"><span class="cat-icon" style="--c: {{ c.color }};width:34px;height:34px;font-size:1rem"><i class="bi {{ c.icon }}"></i></span> {{ c.name }}</a>
+      {% endfor %}
+      <a href="{% url 'shop' %}?on_sale=1&sort=discount" class="list-group-item list-group-item-action text-danger"><span class="cat-icon" style="--c:#dc2626;width:34px;height:34px;font-size:1rem"><i class="bi bi-lightning-charge-fill"></i></span> Deals</a>
+    </div>
+    <div class="small text-muted-2 fw-semibold text-uppercase px-3 pt-3 pb-1" style="letter-spacing:.06em;font-size:.7rem">Account</div>
+    <div class="list-group list-group-flush">
+      {% if request.user.is_authenticated %}
+        <a href="{% url 'account' %}" class="list-group-item list-group-item-action"><i class="bi bi-person"></i> My account</a>
+        <a href="{% url 'orders' %}" class="list-group-item list-group-item-action"><i class="bi bi-box-seam"></i> Orders</a>
+        <a href="{% url 'ewallet' %}" class="list-group-item list-group-item-action"><i class="bi bi-wallet2"></i> eWallet</a>
+        <a href="{% url 'logout' %}" class="list-group-item list-group-item-action text-danger"><i class="bi bi-box-arrow-right"></i> Sign out</a>
+      {% else %}
+        <a href="{% url 'login' %}" class="list-group-item list-group-item-action"><i class="bi bi-box-arrow-in-right"></i> Sign in</a>
+        <a href="{% url 'register' %}" class="list-group-item list-group-item-action"><i class="bi bi-person-plus"></i> Create account</a>
+      {% endif %}
+      <a href="{% url 'faq' %}" class="list-group-item list-group-item-action"><i class="bi bi-question-circle"></i> Help centre</a>
+    </div>
+  </div>
+</div>

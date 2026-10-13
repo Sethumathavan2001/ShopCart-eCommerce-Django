@@ -1,0 +1,59 @@
+{% extends 'studio/base.html' %}
+{% block title %}{% if category %}Edit category{% else %}Add category{% endif %} · Studio{% endblock %}
+{% block studio %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'studio' %}">Studio</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'studio_categories' %}">Categories</a></li>
+    <li class="breadcrumb-item active">{% if category %}{{ category.name }}{% else %}New category{% endif %}</li>
+  </ol>
+</nav>
+<h1 class="h3 fw-bold mb-4">{% if category %}Edit category{% else %}Add a new category{% endif %}</h1>
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="row g-3">
+    <div class="col-xl-8">
+      <div class="card-soft">
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-8"><label class="form-label" for="{{ form.name.id_for_label }}">Name</label>{{ form.name }}{{ form.name.errors }}</div>
+            <div class="col-md-4"><label class="form-label" for="{{ form.color.id_for_label }}">Accent colour</label>{{ form.color }}{{ form.color.errors }}</div>
+            <div class="col-12"><label class="form-label" for="{{ form.tagline.id_for_label }}">Tagline <span class="text-muted fw-normal">(home page banner headline)</span></label>{{ form.tagline }}{{ form.tagline.errors }}</div>
+            <div class="col-12"><label class="form-label" for="{{ form.description.id_for_label }}">Description</label>{{ form.description }}{{ form.description.errors }}</div>
+            <div class="col-12">
+              <label class="form-label">Icon</label>
+              <div class="icon-picker">
+                {% for icon in icons %}
+                  <input type="radio" name="icon" id="ic{{ forloop.counter }}" value="{{ icon }}" {% if form.icon.value == icon %}checked{% endif %}>
+                  <label for="ic{{ forloop.counter }}" title="{{ icon }}"><i class="bi {{ icon }}"></i></label>
+                {% endfor %}
+              </div>
+              {{ form.icon.errors }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-4">
+      <div class="card-soft mb-3">
+        <div class="card-header">Cover image</div>
+        <div class="card-body">
+          {% if category.image %}<img src="{{ category.image.url }}" alt="" class="w-100 rounded-3 mb-2 border">{% endif %}
+          {{ form.image }}{{ form.image.errors }}
+          <div class="form-text">Landscape 4:3 works best (e.g. 800 × 600).</div>
+        </div>
+      </div>
+      <div class="card-soft">
+        <div class="card-body">
+          <div class="form-check form-switch">{{ form.status }} <label class="form-check-label" for="{{ form.status.id_for_label }}">Hide from store</label></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="d-flex justify-content-end gap-2 mt-3">
+    <a href="{% url 'studio_categories' %}" class="btn btn-white">Cancel</a>
+    <button class="btn btn-primary"><i class="bi bi-check2"></i> Save category</button>
+  </div>
+</form>
+{% endblock %}

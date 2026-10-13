@@ -1,47 +1,74 @@
-<footer class="px-10 py-5">
-    <div class="row">
-      <div class="col-6 col-md-2 mb-3" style="margin-left: 25%;">
-        <h5>CUSTOMER</h5>
-        <ul class="nav flex-column">
-          <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">HELP/FAQS</a></li>
-          <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">TRACK ORDER</a></li>
-          <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">SIZE GUIDE</a></li>
-          <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">BUYING GUIDE</a></li>
-          <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">HOW DO I SHOP?</a></li>
-          <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">FIND PLACES WE DELIVER</a></li>
-          <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">STYLE HUB</a></li>
-        </ul>
-      </div>
-
-      <div class="col-6 col-md-2 mb-3">
-        <h5>STORE AND SITES</h5>
-        <ul class="nav flex-column">
-          <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">ABOUT US</a></li>
-          <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">CONTACT US</a></li>
-          <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">CORPORATE SITE</a></li>
-          <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">STORE LOCATOR</a></li>
-          <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">CAREERS</a></li>
-          <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">SITEMAP</a></li>
-        </ul>
-      </div>
-
-      <div class="col-6 col-md-2 mb-3">
-        <h5>POLICIES</h5>
-        <ul class="nav flex-column">
-          <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">TERMS OF USE</a></li>
-          <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">PRIVACY</a></li>
-          <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">DELIVERY POLICY</a></li>
-          <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-muted">EXCHANGES & RETURNS</a></li>
-        </ul>
+{% load static %}{% now "Y" as year %}
+<footer class="site-footer">
+  <div class="container">
+    <div class="newsletter-row">
+      <div class="row align-items-center g-3">
+        <div class="col-lg-6">
+          <h4>Join the ShopCart newsletter</h4>
+          <p class="mb-0">Early access to sales, new arrivals and members-only coupons. No spam, unsubscribe anytime.</p>
+        </div>
+        <div class="col-lg-6">
+          <form class="d-flex gap-2" method="post" action="{% url 'newsletter' %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <input type="email" name="email" class="form-control" placeholder="Enter your email address" required aria-label="Email address">
+            <button class="btn btn-primary px-4" type="submit">Subscribe</button>
+          </form>
+        </div>
       </div>
     </div>
 
-    <div class="d-flex flex-column flex-sm-row justify-content-between py-4 my-4 border-top" style="margin-left: 25%;">
-      <p>© 2024 Company, Inc. All rights reserved.</p>
-      <ul class="list-unstyled d-flex">
-        <li class="ms-3"><a class="link-dark" href="#"><svg class="bi" width="24" height="24"><use xlink:href="#twitter"></use></svg></a></li>
-        <li class="ms-3"><a class="link-dark" href="#"><svg class="bi" width="24" height="24"><use xlink:href="#instagram"></use></svg></a></li>
-        <li class="ms-3"><a class="link-dark" href="#"><svg class="bi" width="24" height="24"><use xlink:href="#facebook"></use></svg></a></li>
-      </ul>
+    <div class="main">
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <a class="brand" href="{% url 'home' %}"><img src="{% static 'images/logo-mark.svg' %}" alt="" width="34" height="34"> ShopCart<span class="dot">.</span></a>
+          <p class="mt-3 pe-lg-4">Everyday essentials and the latest finds across groceries, beauty, electronics, health and baby care — at honest prices, delivered fast.</p>
+          <div class="social">
+            <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+            <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+            <a href="#" aria-label="X"><i class="bi bi-twitter-x"></i></a>
+            <a href="#" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+          </div>
+        </div>
+        <div class="col-6 col-md-3 col-lg-2">
+          <h6>Shop</h6>
+          <ul>
+            {% for c in nav_categories|slice:":5" %}<li><a href="{% url 'collectionview' c.id %}">{{ c.name }}</a></li>{% endfor %}
+            <li><a href="{% url 'shop' %}?on_sale=1&sort=discount">Deals</a></li>
+          </ul>
+        </div>
+        <div class="col-6 col-md-3 col-lg-2">
+          <h6>Your account</h6>
+          <ul>
+            <li><a href="{% url 'account' %}">My account</a></li>
+            <li><a href="{% url 'orders' %}">Orders & tracking</a></li>
+            <li><a href="{% url 'favorite' %}">Wishlist</a></li>
+            <li><a href="{% url 'ewallet' %}">eWallet</a></li>
+          </ul>
+        </div>
+        <div class="col-6 col-md-3 col-lg-2">
+          <h6>Help</h6>
+          <ul>
+            <li><a href="{% url 'faq' %}">Help centre</a></li>
+            <li><a href="{% url 'policy' 'shipping' %}">Shipping</a></li>
+            <li><a href="{% url 'policy' 'returns' %}">Returns & refunds</a></li>
+            <li><a href="{% url 'contact' %}">Contact us</a></li>
+          </ul>
+        </div>
+        <div class="col-6 col-md-3 col-lg-2">
+          <h6>Company</h6>
+          <ul>
+            <li><a href="{% url 'about' %}">About us</a></li>
+            <li><a href="{% url 'policy' 'terms' %}">Terms of use</a></li>
+            <li><a href="{% url 'policy' 'privacy' %}">Privacy policy</a></li>
+          </ul>
+        </div>
+      </div>
     </div>
-  </footer>
+
+    <div class="bottom d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+      <span>© {{ year }} ShopCart. All rights reserved.</span>
+      <img src="{% static 'images/payments.svg' %}" alt="Accepted payments: UPI, cards, cash on delivery, wallet" height="26">
+    </div>
+  </div>
+</footer>

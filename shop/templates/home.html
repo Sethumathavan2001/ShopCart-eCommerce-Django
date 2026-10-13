@@ -1,39 +1,192 @@
 {% extends 'layouts/layout.html' %}
-{% block title %}
-Home | Page
-{% endblock title %}
+{% load shop_tags %}
+{% block title %}Online Shopping for Groceries, Beauty, Electronics & More{% endblock title %}
 {% block content %}
-{% include 'inc/sliders.html' %}
-<div class="container my-5">
-    <div class="row">
-            <div class="col-12">
-                <h3>Trending Products</h3></div>
-                <hr>
-    </div>
-    <div>
-        <div class="row">
-            {% for item in trend %}
-                <div class="col-md-4 col-lg-3">
-                    <div class="card-body">
-                        <a href="{% url 'productdetail' item.id %}">
-                        <img src="{{item.product_image.url}}" alt="No Image">
-                        <h5 class="card-title text-primary">{{item.name}}</h5>
-                    </a>
-                        <br>
-                        <div class="card-text">
-                            <span class="float-start orginal-price">
-                                <s>Rs. {{item.orginal_price}}</s>
-                            </span>
-                            <span class="float-end selling-price">
-                                Rs. {{item.selling_price}}
-                            </span>
-                        </div>
-                        <br><br>
-                        <a href="{% url 'productdetail' item.id %}" class="btn btn-primary btn-sm" style="margin-bottom: 50px;">View Details</a>
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <div class="row g-3">
+      <div class="col-lg-8">
+        <div class="hero-main">
+          <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="6000">
+            <div class="carousel-indicators">
+              {% for c in categories %}<button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active" aria-current="true"{% endif %} aria-label="{{ c.name }}"></button>{% endfor %}
+            </div>
+            <div class="carousel-inner">
+              {% for c in categories %}
+              <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <div class="hero-slide" style="--c: {{ c.color }}">
+                  <div class="copy">
+                    <span class="eyebrow"><i class="bi {{ c.icon }}"></i> {{ c.name }}</span>
+                    <h1>{{ c.tagline|default:c.name }}</h1>
+                    <p>{{ c.description }}</p>
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                      <a href="{% url 'collectionview' c.id %}" class="btn btn-dark btn-lg">Shop now <i class="bi bi-arrow-right"></i></a>
+                      <a href="{% url 'shop' %}?category={{ c.id }}&on_sale=1&sort=discount" class="btn btn-white btn-lg">View deals</a>
                     </div>
+                  </div>
+                  <div class="art">{% if c.image %}<img src="{{ c.image.url }}" alt="{{ c.name }} products" {% if not forloop.first %}loading="lazy"{% endif %}>{% endif %}</div>
                 </div>
-                {% endfor %}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
         </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="hero-side">
+          <div class="promo-tile dark">
+            <i class="bi bi-gift deco"></i>
+            <span class="label">New customer offer</span>
+            <h3>10% off your first order</h3>
+            <p>Use <span class="code">WELCOME10</span> on orders above Rs. 299.</p>
+            <a href="{% url 'shop' %}">Start shopping <i class="bi bi-arrow-right"></i></a>
+          </div>
+          <div class="promo-tile indigo">
+            <i class="bi bi-wallet2 deco"></i>
+            <span class="label">ShopCart eWallet</span>
+            <h3>Checkout in one tap</h3>
+            <p>Pay instantly and get refunds straight back to your wallet.</p>
+            <a href="{% url 'ewallet' %}">Open your wallet <i class="bi bi-arrow-right"></i></a>
+          </div>
+        </div>
+      </div>
     </div>
-</div>
+
+    <div class="trust-bar">
+      <div class="row row-cols-2 row-cols-lg-4 g-0">
+        <div class="col"><div class="item"><i class="bi bi-truck"></i><div><strong>Free delivery</strong><small>On orders over Rs. 499</small></div></div></div>
+        <div class="col"><div class="item"><i class="bi bi-arrow-counterclockwise"></i><div><strong>7-day returns</strong><small>Hassle-free, no questions</small></div></div></div>
+        <div class="col"><div class="item"><i class="bi bi-shield-check"></i><div><strong>Secure checkout</strong><small>COD & eWallet</small></div></div></div>
+        <div class="col"><div class="item"><i class="bi bi-headset"></i><div><strong>Support 24/7</strong><small>Real people, real help</small></div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Categories -->
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div><h2>Shop by category</h2><p>Everything you need, neatly organised</p></div>
+      <a href="{% url 'collection' %}" class="view-all">All categories <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="row g-3 row-cols-1 row-cols-sm-2 row-cols-lg-5">
+      {% for c in categories %}
+      <div class="col">
+        <a href="{% url 'collectionview' c.id %}" class="cat-pill" style="--c: {{ c.color }}">
+          <span class="cat-icon"><i class="bi {{ c.icon }}"></i></span>
+          <span class="min-w-0"><strong>{{ c.name }}</strong><small>{{ c.product_count }} products</small></span>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% if trend %}
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div><h2>Bestsellers</h2><p>The products everyone is adding to their cart</p></div>
+      <a href="{% url 'shop' %}?sort=popular" class="view-all">View all <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="h-scroll">
+      {% for item in trend %}{% include 'inc/product_card.html' %}{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if deals %}
+<section class="section">
+  <div class="container">
+    <div class="deal-banner">
+      <h2><i class="bi bi-lightning-charge-fill"></i> Deals of the day</h2>
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <div class="countdown" data-countdown="{{ deal_ends|date:'c' }}">Ends in <span data-h>00</span>:<span data-m>00</span>:<span data-s>00</span></div>
+        <a href="{% url 'shop' %}?on_sale=1&sort=discount">See all deals <i class="bi bi-arrow-right"></i></a>
+      </div>
+    </div>
+    <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-lg-4">
+      {% for item in deals %}<div class="col">{% include 'inc/product_card.html' %}</div>{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div><h2>Explore our collections</h2><p>Curated ranges from brands you trust</p></div>
+    </div>
+    <div class="row g-3 row-cols-1 row-cols-sm-2 row-cols-lg-3">
+      {% for c in categories|slice:":3" %}
+      <div class="col">
+        <a href="{% url 'collectionview' c.id %}" class="cat-card" style="--c: {{ c.color }}">
+          <div class="cover">{% if c.image %}<img src="{{ c.image.url }}" alt="{{ c.name }}" loading="lazy">{% endif %}</div>
+          <div class="info">
+            <div class="min-w-0"><h5>{{ c.name }}</h5><p>{{ c.description }}</p></div>
+            <span class="arrow"><i class="bi bi-arrow-up-right"></i></span>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div><h2>New arrivals</h2><p>Fresh additions to the store</p></div>
+      <a href="{% url 'shop' %}?sort=newest" class="view-all">View all <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-lg-4">
+      {% for item in new_arrivals %}<div class="col">{% include 'inc/product_card.html' %}</div>{% endfor %}
+    </div>
+  </div>
+</section>
+
+{% if top_brands %}
+<section class="section">
+  <div class="container">
+    <div class="section-head"><div><h2>Top brands</h2><p>Shop the names our customers love</p></div></div>
+    <div class="brand-strip">
+      {% for b in top_brands %}
+      <a class="brand-chip" href="{% url 'shop' %}?q={{ b.vendor|urlencode }}"><strong>{{ b.vendor }}</strong><small>{{ b.n }} products</small></a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if recently_viewed %}
+<section class="section">
+  <div class="container">
+    <div class="section-head"><div><h2>Recently viewed</h2><p>Pick up where you left off</p></div></div>
+    <div class="h-scroll">
+      {% for item in recently_viewed %}{% include 'inc/product_card.html' %}{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
 {% endblock content %}
+
+{% block scripts %}
+<script>
+  (function () {
+    const el = document.querySelector('[data-countdown]');
+    if (!el) return;
+    const end = new Date(el.dataset.countdown).getTime();
+    const pad = n => String(n).padStart(2, '0');
+    function tick() {
+      let s = Math.max(0, Math.floor((end - Date.now()) / 1000));
+      el.querySelector('[data-h]').textContent = pad(Math.floor(s / 3600));
+      el.querySelector('[data-m]').textContent = pad(Math.floor(s % 3600 / 60));
+      el.querySelector('[data-s]').textContent = pad(s % 60);
+    }
+    tick(); setInterval(tick, 1000);
+  })();
+</script>
+{% endblock %}

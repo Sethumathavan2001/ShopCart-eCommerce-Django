@@ -1,0 +1,34 @@
+{% extends 'layouts/layout.html' %}
+{% block footer %}{% endblock %}
+{% block content %}
+<div class="container-xl">
+  <div class="studio-shell pb-5">
+    <aside class="studio-nav">
+      <div class="card-soft p-2 account-nav">
+        <div class="d-flex align-items-center justify-content-between px-2 py-2">
+          <span class="fw-bold">Seller Studio</span><span class="studio-badge"><i class="bi bi-shield-lock"></i> Staff</span>
+        </div>
+        <div class="title">Overview</div>
+        <div class="list-group">
+          <a href="{% url 'studio' %}" class="list-group-item list-group-item-action {% if studio_active == 'dashboard' %}active{% endif %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        </div>
+        <div class="title mt-2">Catalogue</div>
+        <div class="list-group">
+          <a href="{% url 'studio_products' %}" class="list-group-item list-group-item-action {% if studio_active == 'products' %}active{% endif %}"><i class="bi bi-box-seam"></i> Products</a>
+          <a href="{% url 'studio_product_add' %}" class="list-group-item list-group-item-action {% if studio_active == 'add' %}active{% endif %}"><i class="bi bi-plus-square"></i> Add product</a>
+          <a href="{% url 'studio_categories' %}" class="list-group-item list-group-item-action {% if studio_active == 'categories' %}active{% endif %}"><i class="bi bi-tags"></i> Categories</a>
+        </div>
+        <div class="title mt-2">More</div>
+        <div class="list-group">
+          <a href="{% url 'admin:shop_order_changelist' %}" class="list-group-item list-group-item-action"><i class="bi bi-receipt"></i> Orders <i class="bi bi-box-arrow-up-right ms-auto small"></i></a>
+          <a href="{% url 'admin:shop_coupon_changelist' %}" class="list-group-item list-group-item-action"><i class="bi bi-ticket-perforated"></i> Coupons <i class="bi bi-box-arrow-up-right ms-auto small"></i></a>
+          <a href="{% url 'home' %}" class="list-group-item list-group-item-action"><i class="bi bi-shop"></i> View store</a>
+        </div>
+      </div>
+    </aside>
+    <div class="min-w-0">
+      {% block studio %}{% endblock %}
+    </div>
+  </div>
+</div>
+{% endblock content %}

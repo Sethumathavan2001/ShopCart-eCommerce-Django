@@ -1,0 +1,175 @@
+{% extends 'studio/base.html' %}
+{% load shop_tags %}
+{% block title %}{% if product %}Edit product{% else %}Add product{% endif %} · Studio{% endblock %}
+{% block studio %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'studio' %}">Studio</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'studio_products' %}">Products</a></li>
+    <li class="breadcrumb-item active">{% if product %}Edit{% else %}New product{% endif %}</li>
+  </ol>
+</nav>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+  <h1 class="h3 fw-bold mb-0">{% if product %}Edit product{% else %}Add a new product{% endif %}</h1>
+  {% if product %}
+  <div class="d-flex gap-2">
+    {% if not product.status %}<a href="{% url 'productdetail' product.id %}" target="_blank" class="btn btn-white btn-sm"><i class="bi bi-eye"></i> View in store</a>{% endif %}
+    <form method="post" action="{% url 'studio_product_delete' product.id %}" data-confirm="Delete “{{ product.name }}”? This cannot be undone.">
+      {% csrf_token %}<button class="btn btn-white btn-sm text-danger"><i class="bi bi-trash3"></i> Delete</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+
+<form method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  <div class="row g-3">
+    <div class="col-xl-8">
+      <div class="card-soft mb-3">
+        <div class="card-header">Basic information</div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label" for="{{ form.name.id_for_label }}">Product name</label>
+            {{ form.name }}{{ form.name.errors }}
+            <div class="form-text">Keep it short and clear, e.g. “boAt Rockerz 450 Bluetooth Headphones”.</div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6"><label class="form-label" for="{{ form.vendor.id_for_label }}">Brand</label>{{ form.vendor }}{{ form.vendor.errors }}</div>
+            <div class="col-md-6"><label class="form-label" for="{{ form.sku.id_for_label }}">SKU <span class="text-muted fw-normal">(optional)</span></label>{{ form.sku }}{{ form.sku.errors }}</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="{{ form.category.id_for_label }}">Category</label>
+            {{ form.category }}{{ form.category.errors }}
+            <div class="form-text">Need a new one? <a href="{% url 'studio_category_add' %}">Create a category</a>.</div>
+          </div>
+          <div>
+            <label class="form-label" for="{{ form.description.id_for_label }}">Description</label>
+            {{ form.description }}{{ form.description.errors }}
+            <div class="form-text">Tip: add a “Highlights:” line followed by lines starting with “• ” to show a highlights list on the product page.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-soft mb-3">
+        <div class="card-header">Pricing & inventory</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label" for="{{ form.selling_price.id_for_label }}">Selling price</label>
+              <div class="input-group"><span class="input-group-text">Rs.</span>{{ form.selling_price }}</div>{{ form.selling_price.errors }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="{{ form.orginal_price.id_for_label }}">MRP</label>
+              <div class="input-group"><span class="input-group-text">Rs.</span>{{ form.orginal_price }}</div>{{ form.orginal_price.errors }}
+              <div class="form-text" id="discountHint"></div>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label" for="{{ form.quantity.id_for_label }}">Stock quantity</label>
+              {{ form.quantity }}{{ form.quantity.errors }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-4">
+      <div class="card-soft mb-3">
+        <div class="card-header">Product image</div>
+        <div class="card-body">
+          <label class="upload-zone" id="dropZone" for="{{ form.product_image.id_for_label }}">
+            <img id="imgPreview" src="{% if product.product_image %}{{ product.product_image.url }}{% endif %}" alt="" class="{% if not product.product_image %}d-none{% endif %} mb-2">
+            <div id="dropHint" class="{% if product.product_image %}small{% endif %}">
+              <i class="bi bi-cloud-arrow-up fs-2 text-muted d-block"></i>
+              <span class="fw-semibold">{% if product.product_image %}Replace image{% else %}Click or drop an image{% endif %}</span>
+              <div class="small text-muted-2">JPG, PNG or WebP</div>
+            </div>
+          </label>
+          <input type="file" name="product_image" id="{{ form.product_image.id_for_label }}" accept="image/*" class="d-none">
+          {{ form.product_image.errors }}
+          <div class="form-check form-switch mt-3">
+            {{ form.process_image }}
+            <label class="form-check-label small fw-semibold" for="{{ form.process_image.id_for_label }}">{{ form.process_image.label }}</label>
+            <div class="form-text mt-0">{{ form.process_image.help_text }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-soft mb-3">
+        <div class="card-header">Visibility</div>
+        <div class="card-body">
+          <div class="form-check form-switch mb-2">
+            {{ form.trending }} <label class="form-check-label" for="{{ form.trending.id_for_label }}">Feature as bestseller</label>
+          </div>
+          <div class="form-check form-switch">
+            {{ form.status }} <label class="form-check-label" for="{{ form.status.id_for_label }}">Hide from store</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-soft mb-3">
+        <div class="card-header">Card preview</div>
+        <div class="card-body">
+          <div class="product-card mx-auto" style="max-width:240px">
+            <div class="thumb d-grid" style="place-items:center">
+              <img id="cardImg" src="{% if product.product_image %}{{ product.product_image.url }}{% endif %}" alt="" class="{% if not product.product_image %}d-none{% endif %}">
+              <i id="cardImgEmpty" class="bi bi-image text-muted fs-1 {% if product.product_image %}d-none{% endif %}"></i>
+            </div>
+            <div class="body">
+              <span class="brand-line" id="cardBrand">{{ product.vendor|default:"Brand" }}</span>
+              <span class="name" id="cardName">{{ product.name|default:"Product name" }}</span>
+              <div class="price-row"><span class="price" id="cardPrice"></span><span class="mrp" id="cardMrp"></span><span class="off" id="cardOff"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-soft p-3 d-flex flex-wrap justify-content-end gap-2 position-sticky bottom-0 mt-1" style="z-index:5">
+    <a href="{% url 'studio_products' %}" class="btn btn-white">Cancel</a>
+    {% if not product %}<button type="submit" name="save_add" class="btn btn-white">Save & add another</button>{% endif %}
+    <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i> {% if product %}Save changes{% else %}Publish product{% endif %}</button>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    const $ = id => document.getElementById(id);
+    const file = $('{{ form.product_image.id_for_label }}');
+    const zone = $('dropZone');
+    const name = $('{{ form.name.id_for_label }}'), brand = $('{{ form.vendor.id_for_label }}');
+    const price = $('{{ form.selling_price.id_for_label }}'), mrp = $('{{ form.orginal_price.id_for_label }}');
+    const fmt = v => 'Rs. ' + Number(v).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+
+    function showFile(f) {
+      if (!f || !f.type.startsWith('image/')) return;
+      const url = URL.createObjectURL(f);
+      $('imgPreview').src = url; $('imgPreview').classList.remove('d-none');
+      $('cardImg').src = url; $('cardImg').classList.remove('d-none'); $('cardImgEmpty').classList.add('d-none');
+      $('dropHint').classList.add('small');
+    }
+    file.addEventListener('change', () => showFile(file.files[0]));
+    ['dragenter', 'dragover'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('drag'); }));
+    ['dragleave', 'drop'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.remove('drag'); }));
+    zone.addEventListener('drop', e => { file.files = e.dataTransfer.files; showFile(file.files[0]); });
+
+    function sync() {
+      $('cardName').textContent = name.value || 'Product name';
+      $('cardBrand').textContent = brand.value || 'Brand';
+      const p = parseFloat(price.value), m = parseFloat(mrp.value);
+      $('cardPrice').textContent = p ? fmt(p) : '';
+      const off = p && m > p ? Math.round((m - p) / m * 100) : 0;
+      $('cardMrp').textContent = off ? fmt(m) : '';
+      $('cardOff').textContent = off ? off + '% off' : '';
+      $('discountHint').textContent = off ? 'Customers see ' + off + '% off.' : (m && p && m < p ? 'MRP must be at least the selling price.' : '');
+    }
+    [name, brand, price, mrp].forEach(el => el.addEventListener('input', sync));
+    // MRP defaults to the selling price when left empty
+    price.addEventListener('change', () => { if (!mrp.value) { mrp.value = price.value; sync(); } });
+    sync();
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% load shop_tags %}
+<div class="card-soft p-3 account-nav">
+  <div class="d-flex align-items-center gap-3 p-2 mb-2">
+    <div class="avatar">{% if request.user.profile.avatar %}<img src="{{ request.user.profile.avatar.url }}" alt="">{% else %}{{ request.user|initials }}{% endif %}</div>
+    <div class="min-w-0">
+      <div class="small text-muted-2">Hello,</div>
+      <div class="fw-bold text-truncate">{{ request.user.get_full_name|default:request.user.username }}</div>
+    </div>
+  </div>
+  <div class="list-group">
+    <a href="{% url 'account' %}" class="list-group-item list-group-item-action {% if active == 'account' %}active{% endif %}"><i class="bi bi-person"></i> Profile</a>
+    <a href="{% url 'orders' %}" class="list-group-item list-group-item-action {% if active == 'orders' %}active{% endif %}"><i class="bi bi-box-seam"></i> Orders</a>
+    <a href="{% url 'favorite' %}" class="list-group-item list-group-item-action"><i class="bi bi-heart"></i> Wishlist</a>
+    <a href="{% url 'ewallet' %}" class="list-group-item list-group-item-action {% if active == 'wallet' %}active{% endif %}"><i class="bi bi-wallet2"></i> eWallet</a>
+    <a href="{% url 'addresses' %}" class="list-group-item list-group-item-action {% if active == 'addresses' %}active{% endif %}"><i class="bi bi-geo-alt"></i> Addresses</a>
+    <a href="{% url 'change_password' %}" class="list-group-item list-group-item-action {% if active == 'password' %}active{% endif %}"><i class="bi bi-shield-lock"></i> Password</a>
+    <a href="{% url 'logout' %}" class="list-group-item list-group-item-action text-danger"><i class="bi bi-box-arrow-right text-danger"></i> Logout</a>
+  </div>
+</div>

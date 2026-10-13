@@ -10,7 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+from django.contrib.messages import constants as message_constants
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +23,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-_f%yyzs$b4v0c&cc1)d=z277!nf(g_j8&t0+a^bz!qsm0cu(iy'
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY', 'django-insecure-_f%yyzs$b4v0c&cc1)d=z277!nf(g_j8&t0+a^bz!qsm0cu(iy')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [h for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if h]
 
 
 # Application definition
@@ -38,7 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'shop'
+    'django.contrib.humanize',
+    'shop',
 ]
 
 MIDDLEWARE = [
@@ -64,6 +69,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'shop.context_processors.shop_context',
             ],
         },
     },
@@ -107,7 +113,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -117,15 +123,70 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-import os
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/images/'
-MEDIA_ROOT = BASE_DIR/'static'
+MEDIA_ROOT = BASE_DIR / 'static'
 STATICFILES_DIRS = [
-    BASE_DIR/'static',
+    BASE_DIR / 'static',
 ]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Auth
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'home'
+
+# Emails (password reset etc.) are printed to the console during development.
+# Set DJANGO_EMAIL_BACKEND and the SMTP settings for production.
+EMAIL_BACKEND = os.environ.get('DJANGO_EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+DEFAULT_FROM_EMAIL = 'ShopCart <no-reply@shopcart.local>'
+
+# Map Django message levels to Bootstrap alert classes
+MESSAGE_TAGS = {message_constants.ERROR: 'danger'}
+
+# Store settings
+FREE_SHIPPING_ABOVE = 499        # Orders at or above this amount ship free
+SHIPPING_CHARGE = 40             # Flat shipping fee below the threshold
+MAX_QTY_PER_ITEM = 10            # Max units of one product per order
+WALLET_MAX_TRANSACTION = 100000  # Max single wallet add / withdraw
+
+# Flip to True once a payment gateway is wired into shop.views.payment_start
+ONLINE_PAYMENT_ENABLED = False
+
+# Admin theme
+JAZZMIN_SETTINGS = {
+    'site_title': 'ShopCart Admin',
+    'site_header': 'ShopCart',
+    'site_brand': 'ShopCart',
+    'welcome_sign': 'Welcome to the ShopCart dashboard',
+    'copyright': 'ShopCart',
+    'search_model': ['shop.Products', 'shop.Order', 'auth.User'],
+    'topmenu_links': [
+        {'name': 'Dashboard', 'url': 'admin:index'},
+        {'name': 'View site', 'url': '/', 'new_window': True},
+    ],
+    'icons': {
+        'auth.User': 'fas fa-user',
+        'auth.Group': 'fas fa-users',
+        'shop.Catagory': 'fas fa-tags',
+        'shop.Products': 'fas fa-box',
+        'shop.Order': 'fas fa-shopping-bag',
+        'shop.Coupon': 'fas fa-ticket-alt',
+        'shop.Review': 'fas fa-star',
+        'shop.Address': 'fas fa-map-marker-alt',
+        'shop.UserProfile': 'fas fa-id-card',
+        'shop.WalletTransaction': 'fas fa-wallet',
+        'shop.ContactMessage': 'fas fa-envelope',
+        'shop.NewsletterSubscriber': 'fas fa-paper-plane',
+        'shop.Cartlist': 'fas fa-shopping-cart',
+        'shop.Favlist': 'fas fa-heart',
+    },
+    'order_with_respect_to': ['shop.Order', 'shop.Products', 'shop.Catagory', 'shop.Coupon', 'shop.Review'],
+    'show_ui_builder': False,
+}

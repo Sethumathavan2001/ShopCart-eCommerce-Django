@@ -1,0 +1,150 @@
+{% extends 'studio/base.html' %}
+{% load shop_tags %}
+{% block title %}Products · Studio{% endblock %}
+{% block studio %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div>
+    <h1 class="h3 fw-bold mb-1">Products</h1>
+    <p class="text-muted-2 mb-0">{{ page_obj.paginator.count }} product{{ page_obj.paginator.count|pluralize }}{% if q or request.GET.category or request.GET.stock or request.GET.visibility %} match your filters{% endif %}</p>
+  </div>
+  <a href="{% url 'studio_product_add' %}{% if request.GET.category %}?category={{ request.GET.category }}{% endif %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add product</a>
+</div>
+
+<form method="get" class="card-soft p-3 mb-3">
+  <div class="row g-2 align-items-center">
+    <div class="col-md-4">
+      <div class="input-icon"><i class="bi bi-search"></i><input type="search" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Search name, brand or SKU"></div>
+    </div>
+    <div class="col-6 col-md-2">
+      <select name="category" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">All categories</option>
+        {% for c in categories %}<option value="{{ c.id }}" {% if request.GET.category == c.id|stringformat:'s' %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <select name="stock" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">Any stock</option>
+        <option value="low" {% if request.GET.stock == 'low' %}selected{% endif %}>Low stock</option>
+        <option value="out" {% if request.GET.stock == 'out' %}selected{% endif %}>Out of stock</option>
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <select name="visibility" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">Live & hidden</option>
+        <option value="live" {% if request.GET.visibility == 'live' %}selected{% endif %}>Live only</option>
+        <option value="hidden" {% if request.GET.visibility == 'hidden' %}selected{% endif %}>Hidden only</option>
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="-created_at" {% if sort == '-created_at' %}selected{% endif %}>Newest</option>
+        <option value="name" {% if sort == 'name' %}selected{% endif %}>Name A–Z</option>
+        <option value="selling_price" {% if sort == 'selling_price' %}selected{% endif %}>Price ↑</option>
+        <option value="-selling_price" {% if sort == '-selling_price' %}selected{% endif %}>Price ↓</option>
+        <option value="quantity" {% if sort == 'quantity' %}selected{% endif %}>Stock ↑</option>
+        <option value="-quantity" {% if sort == '-quantity' %}selected{% endif %}>Stock ↓</option>
+      </select>
+    </div>
+  </div>
+</form>
+
+<form method="post" action="{% url 'studio_product_bulk' %}" id="bulkForm" data-confirm-delete="Delete the selected products? This cannot be undone.">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+  <div class="card-soft">
+    <div class="d-flex align-items-center gap-2 px-3 py-2 border-bottom small" id="bulkBar">
+      <span class="text-muted-2"><span id="selCount">0</span> selected</span>
+      <select name="action" class="form-select form-select-sm" style="width:auto">
+        <option value="">Bulk action…</option>
+        <option value="show">Show in store</option>
+        <option value="hide">Hide from store</option>
+        <option value="feature">Mark as bestseller</option>
+        <option value="unfeature">Remove bestseller</option>
+        <option value="delete">Delete</option>
+      </select>
+      <button class="btn btn-white btn-sm" type="submit">Apply</button>
+    </div>
+    <div class="table-responsive">
+      <table class="table studio-table">
+        <thead>
+          <tr>
+            <th style="width:36px"><input type="checkbox" class="form-check-input" id="selAll" aria-label="Select all"></th>
+            <th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for p in products %}
+          <tr>
+            <td><input type="checkbox" class="form-check-input row-check" name="ids" value="{{ p.id }}" aria-label="Select {{ p.name }}"></td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                {% if p.product_image %}<img src="{{ p.product_image.url }}" class="studio-thumb" alt="" loading="lazy">{% else %}<span class="studio-thumb d-grid" style="place-items:center"><i class="bi bi-image text-muted"></i></span>{% endif %}
+                <div class="min-w-0">
+                  <a href="{% url 'studio_product_edit' p.id %}" class="pname">{{ p.name }}</a>
+                  <small class="text-muted-2">{{ p.vendor }}{% if p.sku %} · {{ p.sku }}{% endif %}{% if p.trending %} · <span class="text-dark"><i class="bi bi-fire"></i> Bestseller</span>{% endif %}</small>
+                </div>
+              </div>
+            </td>
+            <td class="text-muted-2 text-nowrap">{{ p.category.name }}</td>
+            <td class="text-nowrap"><strong>{{ p.selling_price|inr }}</strong>{% if p.discount_percent %}<br><small class="text-muted-2"><s>{{ p.orginal_price|inr }}</s> · {{ p.discount_percent }}%</small>{% endif %}</td>
+            <td>
+              <div class="d-flex gap-1" data-quick="{% url 'studio_product_quick' p.id %}">
+                <input type="number" min="0" value="{{ p.quantity }}" class="form-control form-control-sm inline-num {% if p.quantity <= 0 %}border-danger{% elif p.quantity <= low_stock %}border-warning{% endif %}" aria-label="Stock" data-field="quantity">
+              </div>
+            </td>
+            <td>{% if p.status %}<span class="dot-hidden">Hidden</span>{% else %}<span class="dot-live">Live</span>{% endif %}</td>
+            <td class="text-end text-nowrap">
+              <a href="{% url 'productdetail' p.id %}" class="btn btn-white btn-sm btn-icon" title="View in store" target="_blank" {% if p.status %}hidden{% endif %}><i class="bi bi-eye"></i></a>
+              <a href="{% url 'studio_product_edit' p.id %}" class="btn btn-white btn-sm btn-icon" title="Edit"><i class="bi bi-pencil"></i></a>
+              <button type="button" class="btn btn-white btn-sm btn-icon" title="{% if p.status %}Show in store{% else %}Hide from store{% endif %}" data-toggle-status="{% url 'studio_product_quick' p.id %}"><i class="bi {% if p.status %}bi-eye-slash{% else %}bi-toggle-on{% endif %}"></i></button>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7">
+            <div class="empty-state py-4"><div class="icon"><i class="bi bi-box-seam"></i></div><h4>No products found</h4>
+              <a href="{% url 'studio_product_add' %}" class="btn btn-primary">Add your first product</a></div>
+          </td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</form>
+{% include 'inc/pagination.html' %}
+
+<!-- Hidden form used for inline quick edits -->
+<form method="post" id="quickForm" hidden>{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"></form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    const all = document.getElementById('selAll');
+    const checks = () => document.querySelectorAll('.row-check');
+    const count = () => document.getElementById('selCount').textContent = document.querySelectorAll('.row-check:checked').length;
+    all && all.addEventListener('change', () => { checks().forEach(c => c.checked = all.checked); count(); });
+    checks().forEach(c => c.addEventListener('change', count));
+
+    const bulk = document.getElementById('bulkForm');
+    bulk.addEventListener('submit', e => {
+      if (bulk.querySelector('[name=action]').value === 'delete' && !confirm(bulk.dataset.confirmDelete)) e.preventDefault();
+    });
+
+    const quick = document.getElementById('quickForm');
+    function submitQuick(url, field, value) {
+      quick.action = url;
+      quick.querySelectorAll('[data-dyn]').forEach(i => i.remove());
+      const input = document.createElement('input');
+      input.type = 'hidden'; input.name = field; input.value = value; input.dataset.dyn = '1';
+      quick.appendChild(input);
+      quick.submit();
+    }
+    document.querySelectorAll('[data-quick] input').forEach(inp => {
+      inp.addEventListener('change', () => submitQuick(inp.closest('[data-quick]').dataset.quick, inp.dataset.field, inp.value));
+    });
+    document.querySelectorAll('[data-toggle-status]').forEach(btn => {
+      btn.addEventListener('click', () => submitQuick(btn.dataset.toggleStatus, 'toggle_status', '1'));
+    });
+  })();
+</script>
+{% endblock %}

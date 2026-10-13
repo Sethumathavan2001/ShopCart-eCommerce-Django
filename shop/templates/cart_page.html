@@ -1,121 +1,132 @@
 {% extends 'layouts/layout.html' %}
-{% block title %}
-Cart | Page
-{% endblock title %}
+{% load shop_tags %}
+{% block title %}Shopping Cart{% endblock title %}
 {% block content %}
-<div class="container my-5">
-    <h1>{{request.user}} Cart List</h1>
-    <hr>
-
-</div>
 <div class="container">
-    <table class="table table-bordered">
-        <thead>
-            <th>Image</th>
-            <th>Product Name</th>
-            <th>Quantity</th>
-            <th>Price</th>
-            <th>Total Price</th>
-            <th>Buy</th>
-            <th>Remove</th>
-        </thead>
-        <tbody>
-            {% for item in cart_list %}
-            <tr>
-            <td><img src="{{item.product_image.url}}" alt=""></td>
-            <td>{{item.name}}</td>
-            <td class="qnt">{{item.quantity}}</td>
-            <td class="price-for-one-product">{{item.selling_price | stringformat:'d'}}</td>
-            <td class="price">{{item.selling_price}}</td>
-            <td><a href="javascript:void(0);" class="btn btn-warning" onclick="showPopup({{ item.product.id }}, '{{ item.product.name }}', {{ item.product.price }})">
-                Buy
-            </a></td>
-            
-            <td><a href="{% url 'removecart' item.id %}" class="btn btn-danger" >Remove</a></td>
-        </tr>
-            {% endfor %}
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td>Total:</td>
-                <td id="tot-amt"></td>
-            </tr>
-        </tbody>
-    </table>
-    <div id="popup" class="modal" style="display:none;">
-        <div class="modal-content">
-            <span class="close" onclick="closePopup()">&times;</span>
-            <h2>Confirm Purchase</h2>
-            <p><strong>Product Name:</strong> <span id="popup-product-name"></span></p>
-            <p><strong>Price:</strong> $<span id="popup-product-price"></span></p>
-            <!-- Button to go to the order page -->
-            <a href="javascript:void(0);" id="orderButton" class="btn btn-success">Place Order</a>
+  <div class="page-head d-flex flex-wrap justify-content-between align-items-end gap-2">
+    <div>
+      <h1>Shopping cart</h1>
+      {% if items %}<p class="text-muted-2 mb-0"><span data-sum="items">{{ item_count }}</span> item(s) in your cart</p>{% endif %}
+    </div>
+    {% if items %}
+    <div class="steps d-none d-md-flex">
+      <span class="s current"><span class="n">1</span> Cart</span><span class="line"></span>
+      <span class="s"><span class="n">2</span> Checkout</span><span class="line"></span>
+      <span class="s"><span class="n">3</span> Done</span>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if items %}
+  <div class="row g-4 pb-4">
+    <div class="col-lg-8">
+      <div class="card-soft p-3 mb-3">
+        <div class="small mb-2" data-ship-msg>
+          {% if free_shipping_gap > 0 %}
+            Add <strong>{{ free_shipping_gap|inr }}</strong> more for <strong>FREE delivery</strong>
+          {% else %}
+            <i class="bi bi-truck text-success"></i> Yay! Your order qualifies for <strong>FREE delivery</strong>
+          {% endif %}
         </div>
+        <div class="ship-progress"><span data-ship-bar data-threshold="{{ free_shipping_above }}" style="width: {% widthratio subtotal free_shipping_above 100 %}%; max-width:100%"></span></div>
+      </div>
+
+      <div class="card-soft px-3 px-md-4">
+        {% for item in items %}
+        <div class="cart-item" data-cart-row>
+          <a href="{% url 'productdetail' item.product.id %}" class="ci-img">
+            {% if item.product.product_image %}<img src="{{ item.product.product_image.url }}" alt="{{ item.product.name }}">{% endif %}
+          </a>
+          <div class="flex-grow-1 min-w-0">
+            <div class="d-flex justify-content-between gap-3">
+              <div>
+                <a href="{% url 'productdetail' item.product.id %}" class="ci-name">{{ item.product.name }}</a>
+                <small class="text-muted-2">{{ item.product.category.name }}</small>
+              </div>
+              <div class="text-end text-nowrap">
+                <div class="fw-bold" data-line-total>{{ item.line_total|inr }}</div>
+                <small class="text-muted-2">{{ item.product.selling_price|inr }} each</small>
+              </div>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+              {% if item.product.discount_percent %}
+                <span class="mrp small">{{ item.product.orginal_price|inr }}</span>
+                <span class="off small">{{ item.product.discount_percent }}% off</span>
+              {% endif %}
+              {% if item.product.quantity <= 0 or item.product.status %}
+                <span class="badge text-bg-danger">Unavailable — please remove</span>
+              {% elif item.quantity > item.product.quantity %}
+                <span class="badge text-bg-warning">Only {{ item.product.quantity }} left</span>
+              {% endif %}
+            </div>
+            <div class="d-flex align-items-center gap-3 mt-2">
+              <div class="qty-input sm">
+                <button type="button" data-qty-step="-1" aria-label="Decrease"><i class="bi bi-dash"></i></button>
+                <input type="number" value="{{ item.quantity }}" min="0" max="{{ item.product.quantity|default:1 }}" data-cart-qty="{{ item.id }}" aria-label="Quantity">
+                <button type="button" data-qty-step="1" aria-label="Increase"><i class="bi bi-plus"></i></button>
+              </div>
+              <form method="post" action="{% url 'removecart' item.id %}">
+                {% csrf_token %}
+                <button class="btn btn-link btn-sm text-danger p-0"><i class="bi bi-trash3"></i> Remove</button>
+              </form>
+              <button class="btn btn-link btn-sm text-muted p-0 {% if item.product.id in wishlist_ids %}active{% endif %}" data-wish="{{ item.product.id }}"><i class="bi bi-heart"></i> Save</button>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <a href="{% url 'shop' %}" class="btn btn-link mt-2 ps-0"><i class="bi bi-arrow-left"></i> Continue shopping</a>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="summary-card">
+        <div class="card-soft mb-3">
+          <div class="card-header"><i class="bi bi-ticket-perforated me-1"></i> Coupons</div>
+          <div class="card-body">
+            {% if coupon %}
+              <div class="d-flex justify-content-between align-items-center">
+                <div><span class="chip"><i class="bi bi-check-circle"></i> {{ coupon.code }}</span><br><small class="text-success">You save {{ coupon_discount|inr }}</small></div>
+                <form method="post" action="{% url 'remove_coupon' %}">{% csrf_token %}<button class="btn btn-link btn-sm text-danger">Remove</button></form>
+              </div>
+            {% else %}
+              <form method="post" action="{% url 'apply_coupon' %}" class="d-flex gap-2">
+                {% csrf_token %}
+                <input type="text" name="code" class="form-control text-uppercase" placeholder="Enter coupon code" required>
+                <button class="btn btn-outline-primary">Apply</button>
+              </form>
+              <small class="text-muted-2 d-block mt-2">Try <strong>WELCOME10</strong> or <strong>FLAT100</strong></small>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card-soft">
+          <div class="card-header">Price details</div>
+          <div class="card-body">
+            <div class="summary-row"><span>Price (MRP)</span><span data-sum="mrp">{{ mrp_total|inr }}</span></div>
+            <div class="summary-row text-success"><span>Product discount</span><span data-sum="savings">- {{ product_savings|inr }}</span></div>
+            {% if coupon %}<div class="summary-row text-success"><span>Coupon ({{ coupon.code }})</span><span data-sum="coupon">- {{ coupon_discount|inr }}</span></div>{% endif %}
+            <div class="summary-row"><span>Delivery</span><span data-sum="shipping">{% if shipping %}{{ shipping|inr }}{% else %}<span class="text-success">FREE</span>{% endif %}</span></div>
+            <div class="summary-row total"><span>Total amount</span><span data-sum="total">{{ total|inr }}</span></div>
+            {% if has_stock_issue %}
+              <div class="alert alert-warning small mt-3 mb-0">Some items are unavailable or exceed available stock. Please update your cart.</div>
+            {% endif %}
+            <a href="{% url 'checkout' %}" class="btn btn-primary btn-lg w-100 mt-3 {% if has_stock_issue %}disabled{% endif %}">Proceed to checkout <i class="bi bi-arrow-right"></i></a>
+            <div class="text-center small text-muted-2 mt-3"><i class="bi bi-shield-lock"></i> Safe and secure checkout</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="card-soft mb-4">
+    <div class="empty-state">
+      <div class="icon"><i class="bi bi-bag"></i></div>
+      <h4>Your cart is empty</h4>
+      <p class="text-muted-2">Looks like you haven't added anything yet.</p>
+      <a href="{% url 'shop' %}" class="btn btn-primary">Start shopping</a>
+      {% if wishlist_count %}<a href="{% url 'favorite' %}" class="btn btn-light-soft ms-2">View wishlist</a>{% endif %}
+    </div>
+  </div>
+  {% endif %}
 </div>
-<script>
-    one_product = document.getElementsByClassName('price-for-one-product');
-    qty = document.getElementsByClassName('qnt');
-    prices= document.getElementsByClassName('price');
-    console.log(prices)
-    for(let i=0; i<one_product.length;i++)
-    {
-        console.log(parseInt(one_product[i].textContent,10))
-        console.log(parseInt(qty[i].textContent,10))
-        prices[i].innerHTML = parseInt(one_product[i].textContent,10)*parseInt(qty[i].textContent,10)
-        console.log(prices[i])
-    }
-    var tot_price=0;
-    for(let i=0; i<prices.length;i++)
-    {
-        tot_price=tot_price+parseInt(prices[i].textContent);
-    }
-    document.getElementById('tot-amt').innerHTML = "Rs."+tot_price;
-    //console.log(tot_price);
-    //console.log(document.getElementById('tot-amt'));
-    function showPopup(productId, productName, productPrice) {
-        document.getElementById('popup-product-name').textContent = productName;
-        document.getElementById('popup-product-price').textContent = productPrice;
-        
-        // Set the order button to redirect to the order page with the correct product ID
-        const orderButton = document.getElementById('orderButton');
-        orderButton.href = "{% url 'buyproduct' 'productid' %}".replace('productid', productId);
-
-        // Show the popup
-        document.getElementById('popup').style.display = 'block';
-    }
-
-    // Function to close the popup
-    function closePopup() {
-        document.getElementById('popup').style.display = 'none';
-    }
-</script>
-<style>
-    /* Basic styles for the modal */
-    .modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        display: none;
-        justify-content: center;
-        align-items: center;
-    }
-    .modal-content {
-        background-color: white;
-        padding: 20px;
-        border-radius: 5px;
-        width: 300px;
-        text-align: center;
-    }
-    .close {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        font-size: 20px;
-        cursor: pointer;
-    }
-</style>
 {% endblock content %}

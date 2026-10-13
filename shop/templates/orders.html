@@ -1,0 +1,62 @@
+{% extends 'layouts/layout.html' %}
+{% load shop_tags %}
+{% block title %}My Orders{% endblock title %}
+{% block content %}
+<div class="container">
+  <div class="row g-4 py-4">
+    <div class="col-lg-3">{% include 'inc/account_nav.html' with active='orders' %}</div>
+    <div class="col-lg-9">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <h1 class="h3 fw-800 mb-0">My orders</h1>
+        <div class="d-flex flex-wrap gap-1">
+          <a href="{% url 'orders' %}" class="btn btn-sm {% if not status %}btn-primary{% else %}btn-light{% endif %}">All</a>
+          {% for key, label in status_choices %}
+            <a href="?status={{ key }}" class="btn btn-sm {% if status == key %}btn-primary{% else %}btn-light{% endif %}">{{ label }}</a>
+          {% endfor %}
+        </div>
+      </div>
+
+      {% for order in orders %}
+      <div class="order-card mb-3">
+        <div class="oc-head">
+          <div><div class="lbl">Order placed</div>{{ order.created_at|date:"d M Y" }}</div>
+          <div><div class="lbl">Total</div>{{ order.total|inr }}</div>
+          <div><div class="lbl">Payment</div>{{ order.get_payment_method_display }}</div>
+          <div class="ms-auto text-end"><div class="lbl">Order # {{ order.order_number }}</div>
+            <a href="{% url 'order_detail' order.order_number %}">View details</a> ·
+            <a href="{% url 'order_invoice' order.order_number %}" target="_blank">Invoice</a>
+          </div>
+        </div>
+        <div class="p-3 p-md-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="status-badge status-{{ order.status }}">{{ order.get_status_display }}</span>
+            <small class="text-muted-2">{{ order.item_count }} item{{ order.item_count|pluralize }}</small>
+          </div>
+          {% for item in order.items.all|slice:":3" %}
+          <div class="d-flex gap-3 align-items-center mb-2">
+            <div class="oc-thumb">{% if item.product_image %}<img src="{{ item.product_image.url }}" alt="">{% endif %}</div>
+            <div class="flex-grow-1 small">
+              {% if item.product_id %}<a href="{% url 'productdetail' item.product_id %}" class="text-dark fw-semibold">{{ item.name|truncatechars:80 }}</a>{% else %}<span class="fw-semibold">{{ item.name|truncatechars:80 }}</span>{% endif %}
+              <div class="text-muted-2">Qty {{ item.quantity }} · {{ item.price|inr }}</div>
+            </div>
+          </div>
+          {% endfor %}
+          {% if order.items.all|length > 3 %}<small class="text-muted-2">+ {{ order.items.all|length|add:"-3" }} more item(s)</small>{% endif %}
+        </div>
+      </div>
+      {% empty %}
+      <div class="card-soft">
+        <div class="empty-state">
+          <div class="icon"><i class="bi bi-box-seam"></i></div>
+          <h4>No orders {% if status %}with this status{% else %}yet{% endif %}</h4>
+          <p class="text-muted-2">When you place an order, it will appear here.</p>
+          <a href="{% url 'shop' %}" class="btn btn-primary">Start shopping</a>
+        </div>
+      </div>
+      {% endfor %}
+
+      {% include 'inc/pagination.html' %}
+    </div>
+  </div>
+</div>
+{% endblock content %}

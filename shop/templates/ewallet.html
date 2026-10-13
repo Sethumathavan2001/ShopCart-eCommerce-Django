@@ -1,112 +1,120 @@
 {% extends 'layouts/layout.html' %}
-{% block title %}
-Ewallet | Page
-{% endblock title %}
+{% load shop_tags %}
+{% block title %}eWallet{% endblock title %}
 {% block content %}
-<div class="container my-5">
-    <h1>{{request.user}} Wallet Amount in INR: {{inr}}</h1>
-    <hr>
-
-</div>
 <div class="container">
-    <input type="number" name="amount" id="amount-input">
-    <button id="add-amount-btn">Add Amount</button>
+  <div class="row g-4 py-4">
+    <div class="col-lg-3">{% include 'inc/account_nav.html' with active='wallet' %}</div>
+    <div class="col-lg-9">
+      <h1 class="h3 fw-800 mb-3">ShopCart eWallet</h1>
+      <div class="row g-3 mb-4">
+        <div class="col-md-7">
+          <div class="wallet-card h-100">
+            <i class="bi bi-wallet2 bg"></i>
+            <div class="small opacity-75 text-uppercase fw-semibold">Available balance</div>
+            <div class="bal" id="walletBalance">{{ inr|inr }}</div>
+            <div class="small opacity-75 mt-1">{{ request.user.get_full_name|default:request.user.username }}</div>
+            <div class="d-flex gap-4 mt-4 small">
+              <div><div class="opacity-75">Total added</div><strong>{{ total_credit|inr }}</strong></div>
+              <div><div class="opacity-75">Total spent / withdrawn</div><strong>{{ total_debit|inr }}</strong></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-5">
+          <div class="card-soft h-100">
+            <div class="card-body">
+              <ul class="nav nav-pills nav-fill mb-3 small" role="tablist">
+                <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tabAdd" type="button">Add money</button></li>
+                <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabWithdraw" type="button">Withdraw</button></li>
+              </ul>
+              <div class="tab-content">
+                <div class="tab-pane fade show active" id="tabAdd">
+                  <div class="input-group mb-2">
+                    <span class="input-group-text">Rs.</span>
+                    <input type="number" class="form-control" id="amount-input" min="1" step="0.01" placeholder="Enter amount">
+                  </div>
+                  <div class="d-flex gap-2 mb-3">
+                    <button class="btn btn-light btn-sm flex-fill" data-quick="500">+500</button>
+                    <button class="btn btn-light btn-sm flex-fill" data-quick="1000">+1,000</button>
+                    <button class="btn btn-light btn-sm flex-fill" data-quick="2000">+2,000</button>
+                  </div>
+                  <button class="btn btn-primary w-100" id="add-amount-btn"><i class="bi bi-plus-circle"></i> Add money</button>
+                </div>
+                <div class="tab-pane fade" id="tabWithdraw">
+                  <div class="input-group mb-3">
+                    <span class="input-group-text">Rs.</span>
+                    <input type="number" class="form-control" id="withdraw-amount-input" min="1" step="0.01" placeholder="Enter amount">
+                  </div>
+                  <button class="btn btn-outline-primary w-100" id="withdraw-amount-btn"><i class="bi bi-bank"></i> Withdraw to bank</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-soft">
+        <div class="card-header">Transaction history</div>
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead class="small text-muted-2"><tr><th class="ps-4">Date & time</th><th>Description</th><th class="text-end">Amount</th><th class="text-end pe-4">Balance</th></tr></thead>
+            <tbody>
+              {% for i in wallet_history %}
+              <tr>
+                <td class="ps-4 small text-nowrap">{{ i.date|date:"d M Y, h:i A" }}</td>
+                <td>
+                  <span class="d-inline-flex align-items-center gap-2">
+                    <i class="bi {% if i.type == 'credit' %}bi-arrow-down-left-circle-fill text-success{% else %}bi-arrow-up-right-circle-fill text-danger{% endif %} fs-5"></i>
+                    <span class="small">{{ i.comment }}</span>
+                  </span>
+                </td>
+                <td class="text-end fw-semibold {% if i.type == 'credit' %}text-success{% else %}text-danger{% endif %} text-nowrap">{% if i.type == 'credit' %}+{% else %}-{% endif %} {{ i.amount|inr }}</td>
+                <td class="text-end pe-4 small text-nowrap">{{ i.balance|inr }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="text-center text-muted-2 py-5">No transactions yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% include 'inc/pagination.html' %}
+    </div>
+  </div>
 </div>
-<div class="container">
-    <input type="number" name="amount" id="withdraw-amount-input">
-    <button id="withdraw-amount-btn">Withdraw Amount</button>
-</div>
-<table class="table table-bordered">
-    <thead>
-        <th>Data & Time</th>
-        <th>Type</th>
-        <th>Amount</th>
-        <th>Balance</th>
-        <th>Comment</th>
-    </thead>
-    <tbody>
-    {% for i in wallet_history %}
-    <tr><td>{{i.date}}</td>
-    <td>{{i.type}}</td>
-    <td>{{i.amount}}</td>
-    <td>{{i.balance}}</td>
-    <td>{{i.comment}}</td>
-    </tr>
-    {% endfor %}
-</tbody>
-</table>
-<script>
-document.getElementById('add-amount-btn').addEventListener('click', function() {
-    var amount = document.getElementById('amount-input').value;
-
-    if (amount && !isNaN(amount)) {
-        // Send an AJAX POST request to add the amount
-        fetch("{% url 'add_ewallet_amount' %}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')  // Include CSRF token for security
-            },
-            body: JSON.stringify({ 'amount': amount })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert("Amount added! New balance: " + data.new_balance);
-                window.location.reload();
-            } else {
-                alert(data.message);
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    } else {
-        alert("Please enter a valid amount.");
-    }
-});
-
-document.getElementById('withdraw-amount-btn').addEventListener('click', function() {
-    var amount = document.getElementById('withdraw-amount-input').value;
-
-    if (amount && !isNaN(amount)) {
-        // Send an AJAX POST request to add the amount
-        fetch("{% url 'withdraw_ewallet_amount' %}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')  // Include CSRF token for security
-            },
-            body: JSON.stringify({ 'withdraw-amount': amount })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert("Amount Withdraw! New balance: " + data.new_balance);
-                window.location.reload();
-            } else {
-                alert(data.message);
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    } else {
-        alert("Please enter a valid amount.");
-    }
-});
-// Function to get CSRF token for AJAX request
-function getCookie(name) {
-    var cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        var cookies = document.cookie.split(';');
-        for (var i = 0; i < cookies.length; i++) {
-            var cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-</script>
-
-
 {% endblock content %}
+
+{% block scripts %}
+<script>
+  (function () {
+    const { postJSON, toast } = window.ShopCart;
+
+    async function submit(url, key, input, btn) {
+      const amount = parseFloat(input.value);
+      if (!amount || amount <= 0) { toast('Please enter a valid amount.', 'warning'); return; }
+      btn.disabled = true;
+      try {
+        const { data } = await postJSON(url, { [key]: amount });
+        if (data.success) {
+          toast('Done! New balance: Rs. ' + data.new_balance, 'success');
+          setTimeout(() => window.location.reload(), 800);
+        } else {
+          toast(data.message || 'Something went wrong', 'danger');
+          btn.disabled = false;
+        }
+      } catch (e) { btn.disabled = false; }
+    }
+
+    const addInput = document.getElementById('amount-input');
+    document.querySelectorAll('[data-quick]').forEach(b => b.addEventListener('click', () => {
+      addInput.value = (parseFloat(addInput.value) || 0) + parseInt(b.dataset.quick, 10);
+    }));
+    document.getElementById('add-amount-btn').addEventListener('click', function () {
+      submit("{% url 'add_ewallet_amount' %}", 'amount', addInput, this);
+    });
+    document.getElementById('withdraw-amount-btn').addEventListener('click', function () {
+      submit("{% url 'withdraw_ewallet_amount' %}", 'withdraw-amount', document.getElementById('withdraw-amount-input'), this);
+    });
+  })();
+</script>
+{% endblock %}

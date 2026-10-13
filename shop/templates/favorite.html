@@ -1,32 +1,58 @@
 {% extends 'layouts/layout.html' %}
-{% block title %}
-Cart | Page
-{% endblock title %}
+{% load shop_tags %}
+{% block title %}My Wishlist{% endblock title %}
 {% block content %}
-<div class="container my-5">
-    <h1>{{request.user}} Favorite List</h1>
-    <hr>
-
-</div>
 <div class="container">
-    <table class="table table-bordered">
-        <thead>
-            <th>Image</th>
-            <th>Product Name</th>
-            <th>Price</th>
-            <th>Remove</th>
-        </thead>
-        <tbody>
-            {% for item in fav_list %}
-            <tr>
-            <td><img src="{{item.product_image.url}}" alt=""></td>
-            <td>{{item.name}}</td>
-            <td class="price-for-one-product">{{item.selling_price | stringformat:'d'}}</td>
-            <td><a href="{% url 'removefav' item.id %}" class="btn btn-danger" >Remove</a></td>
-        </tr>
-            {% endfor %}
-            
-        </tbody>
-    </table>
+  <div class="page-head">
+    <h1>My wishlist</h1>
+    <p class="text-muted-2 mb-0">{{ fav_list|length }} item{{ fav_list|length|pluralize }} saved for later</p>
+  </div>
+
+  {% if fav_list %}
+  <div class="row g-3 row-cols-2 row-cols-md-3 row-cols-lg-4 pb-4">
+    {% for fav in fav_list %}
+    {% with p=fav.product %}
+    <div class="col">
+      <div class="product-card">
+        <a href="{% url 'productdetail' p.id %}" class="thumb">
+          {% if p.product_image %}<img src="{{ p.product_image.url }}" alt="{{ p.name }}" loading="lazy">{% endif %}
+          <span class="badges">
+            {% if p.quantity <= 0 %}<span class="badge-oos">Out of stock</span>
+            {% elif p.discount_percent %}<span class="badge-off">{{ p.discount_percent }}% OFF</span>{% endif %}
+          </span>
+        </a>
+        <form method="post" action="{% url 'removefav' fav.id %}">
+          {% csrf_token %}
+          <button class="wish-btn active" aria-label="Remove from wishlist" title="Remove"><i class="bi bi-trash3" style="font-size:.95rem"></i></button>
+        </form>
+        <div class="body">
+          <span class="cat">{{ p.category.name }}</span>
+          <a href="{% url 'productdetail' p.id %}" class="name">{{ p.name }}</a>
+          <div class="price-row">
+            <span class="price">{{ p.selling_price|inr }}</span>
+            {% if p.discount_percent %}<span class="mrp">{{ p.orginal_price|inr }}</span>{% endif %}
+          </div>
+          <div class="actions">
+            <form method="post" action="{% url 'move_to_cart' fav.id %}">
+              {% csrf_token %}
+              <button class="btn btn-primary btn-sm w-100" {% if p.quantity <= 0 %}disabled{% endif %}><i class="bi bi-bag-plus"></i> Move to cart</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card-soft mb-4">
+    <div class="empty-state">
+      <div class="icon"><i class="bi bi-heart"></i></div>
+      <h4>Your wishlist is empty</h4>
+      <p class="text-muted-2">Tap the heart on any product to save it here.</p>
+      <a href="{% url 'shop' %}" class="btn btn-primary">Discover products</a>
+    </div>
+  </div>
+  {% endif %}
 </div>
 {% endblock content %}

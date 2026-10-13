@@ -1,0 +1,47 @@
+{% extends 'layouts/layout.html' %}
+{% block title %}My Addresses{% endblock title %}
+{% block content %}
+<div class="container">
+  <div class="row g-4 py-4">
+    <div class="col-lg-3">{% include 'inc/account_nav.html' with active='addresses' %}</div>
+    <div class="col-lg-9">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 fw-800 mb-0">Saved addresses</h1>
+        <a href="{% url 'address_add' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add address</a>
+      </div>
+      <div class="row g-3">
+        {% for a in addresses %}
+        <div class="col-md-6">
+          <div class="address-card {% if a.is_default %}default{% endif %}">
+            <div class="d-flex justify-content-between">
+              <strong>{{ a.full_name }}</strong>
+              {% if a.is_default %}<span class="badge text-bg-primary">Default</span>{% endif %}
+            </div>
+            <div class="small text-muted-2 mt-2">
+              {{ a.line1 }}{% if a.line2 %}, {{ a.line2 }}{% endif %}<br>
+              {{ a.city }}, {{ a.state }} - {{ a.pincode }}<br>{{ a.country }}<br>
+              <i class="bi bi-telephone"></i> {{ a.phone }}
+            </div>
+            <div class="d-flex gap-3 mt-3">
+              <a href="{% url 'address_edit' a.id %}" class="small"><i class="bi bi-pencil"></i> Edit</a>
+              <form method="post" action="{% url 'address_delete' a.id %}" data-confirm="Delete this address?">
+                {% csrf_token %}<button class="btn btn-link btn-sm p-0 text-danger"><i class="bi bi-trash3"></i> Delete</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+          <div class="card-soft"><div class="empty-state">
+            <div class="icon"><i class="bi bi-geo-alt"></i></div>
+            <h4>No saved addresses</h4>
+            <p class="text-muted-2">Save an address for faster checkout.</p>
+            <a href="{% url 'address_add' %}" class="btn btn-primary">Add address</a>
+          </div></div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

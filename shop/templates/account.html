@@ -1,0 +1,68 @@
+{% extends 'layouts/layout.html' %}
+{% load shop_tags %}
+{% block title %}My Account{% endblock title %}
+{% block content %}
+<div class="container">
+  <div class="row g-4 py-4">
+    <div class="col-lg-3">{% include 'inc/account_nav.html' with active='account' %}</div>
+    <div class="col-lg-9">
+      <h1 class="h3 fw-800 mb-3">My account</h1>
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3"><a href="{% url 'orders' %}" class="stat d-block text-dark"><div class="lbl">Orders</div><div class="val">{{ order_count }}</div></a></div>
+        <div class="col-6 col-md-3"><div class="stat"><div class="lbl">Total spent</div><div class="val">{{ total_spent|inr }}</div></div></div>
+        <div class="col-6 col-md-3"><a href="{% url 'ewallet' %}" class="stat d-block text-dark"><div class="lbl">Wallet</div><div class="val">{{ profile.ewallet_amount|inr }}</div></a></div>
+        <div class="col-6 col-md-3"><a href="{% url 'favorite' %}" class="stat d-block text-dark"><div class="lbl">Wishlist</div><div class="val">{{ wishlist_count }}</div></a></div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-xl-7">
+          <div class="card-soft">
+            <div class="card-header">Profile information</div>
+            <div class="card-body">
+              <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="d-flex align-items-center gap-3 mb-3">
+                  <div class="avatar lg">{% if profile.avatar %}<img src="{{ profile.avatar.url }}" alt="">{% else %}{{ request.user|initials }}{% endif %}</div>
+                  <div class="flex-grow-1">
+                    <label class="form-label small fw-semibold">Profile photo</label>
+                    <input type="file" name="avatar" accept="image/*" class="form-control form-control-sm">
+                  </div>
+                </div>
+                <div class="row g-3">
+                  <div class="col-md-6"><label class="form-label small fw-semibold">First name</label>{{ user_form.first_name }}</div>
+                  <div class="col-md-6"><label class="form-label small fw-semibold">Last name</label>{{ user_form.last_name }}</div>
+                  <div class="col-md-6"><label class="form-label small fw-semibold">Email</label>{{ user_form.email }}{{ user_form.email.errors }}</div>
+                  <div class="col-md-6"><label class="form-label small fw-semibold">Phone</label>{{ profile_form.phone }}{{ profile_form.phone.errors }}</div>
+                  <div class="col-12"><label class="form-label small fw-semibold">Username</label><input class="form-control" value="{{ request.user.username }}" disabled></div>
+                </div>
+                <button class="btn btn-primary mt-3">Save changes</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-5">
+          <div class="card-soft">
+            <div class="card-header d-flex justify-content-between"><span>Recent orders</span><a href="{% url 'orders' %}" class="small fw-normal">View all</a></div>
+            <div class="card-body">
+              {% for o in recent_orders %}
+                <a href="{% url 'order_detail' o.order_number %}" class="d-flex justify-content-between align-items-center py-2 border-bottom text-dark">
+                  <div><div class="fw-semibold small">#{{ o.order_number }}</div><small class="text-muted-2">{{ o.created_at|date:"d M Y" }} · {{ o.total|inr }}</small></div>
+                  <span class="status-badge status-{{ o.status }}">{{ o.get_status_display }}</span>
+                </a>
+              {% empty %}
+                <p class="text-muted-2 small mb-0">No orders yet. <a href="{% url 'shop' %}">Start shopping</a></p>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="card-soft mt-3">
+            <div class="card-body d-flex justify-content-between align-items-center">
+              <div><div class="fw-semibold">Saved addresses</div><small class="text-muted-2">{{ address_count }} address{{ address_count|pluralize:"es" }}</small></div>
+              <a href="{% url 'addresses' %}" class="btn btn-light-soft btn-sm">Manage</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

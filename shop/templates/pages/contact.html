@@ -1,0 +1,35 @@
+{% extends 'layouts/layout.html' %}
+{% block title %}Contact Us{% endblock title %}
+{% block content %}
+<div class="container">
+  <div class="page-head text-center py-4">
+    <h1>Get in touch</h1>
+    <p class="text-muted-2 mb-0">Questions about an order or a product? We're here to help.</p>
+  </div>
+  <div class="row g-4 mb-4">
+    <div class="col-lg-4">
+      <div class="d-grid gap-3">
+        <div class="feature"><i class="bi bi-envelope"></i><div><h6>Email us</h6><small>sethumathavan033@gmail.com</small></div></div>
+        <div class="feature"><i class="bi bi-telephone"></i><div><h6>Call us</h6><small>+91 9361099057</small></div></div>
+        <div class="feature"><i class="bi bi-geo-alt"></i><div><h6>Visit us</h6><small>Chennai, Tamilnadu.</small></div></div>
+      </div>
+    </div>
+    <div class="col-lg-8">
+      <div class="card-soft">
+        <div class="card-body p-4">
+          <form method="post">
+            {% csrf_token %}
+            <div class="row g-3">
+              <div class="col-md-6"><label class="form-label small fw-semibold">Name</label>{{ form.name }}{{ form.name.errors }}</div>
+              <div class="col-md-6"><label class="form-label small fw-semibold">Email</label>{{ form.email }}{{ form.email.errors }}</div>
+              <div class="col-12"><label class="form-label small fw-semibold">Subject</label>{{ form.subject }}{{ form.subject.errors }}</div>
+              <div class="col-12"><label class="form-label small fw-semibold">Message</label>{{ form.message }}{{ form.message.errors }}</div>
+            </div>
+            <button class="btn btn-primary mt-3"><i class="bi bi-send"></i> Send message</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
